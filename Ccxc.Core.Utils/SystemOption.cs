@@ -67,19 +67,10 @@ namespace Ccxc.Core.Utils
                         var name = props.Name;
                         var value = props.GetValue(defaultOption).ToString();
                         var desc = (attr as OptionDescriptionAttribute).Desc;
-                        var isEncrypt = (attr as OptionDescriptionAttribute).IsEncrypt;
 
                         var configOption = configXml.CreateElement("Option");
                         configOption.SetAttribute("Name", name);
-
-                        if (isEncrypt)
-                        {
-                            configOption.SetAttribute("Cipher", $"填写加密配置-原格式参考: {value}");
-                        }
-                        else
-                        {
-                            configOption.SetAttribute("Value", value);
-                        }
+                        configOption.SetAttribute("Value", value);
 
                         var configComment = configXml.CreateComment(desc);
 
@@ -180,40 +171,12 @@ namespace Ccxc.Core.Utils
         public string Desc { get; set; }
 
         /// <summary>
-        /// 该系统配置项的健康管理类
-        /// </summary>
-        public Type HealthCheckClass { get; set; } = null;
-
-        /// <summary>
-        /// 该系统配置项的健康检查时所调用的方法名，该方法必须是健康管理类中可调用的静态方法。
-        /// </summary>
-        public string HealthCheckMethod { get; set; } = null;
-
-        /// <summary>
-        /// 标志该系统配置项是否应为加密存储
-        /// </summary>
-        public bool IsEncrypt { get; set; } = false;
-
-        /// <summary>
         /// 标注该属性为一个系统配置项
         /// </summary>
         /// <param name="value">该配置项的描述</param>
         public OptionDescriptionAttribute(string value)
         {
             Desc = value;
-        }
-
-        /// <summary>
-        /// 标注该属性为一个带健康检查的系统配置项。健康检查将在自动生成状态页时使用。
-        /// </summary>
-        /// <param name="value">该配置项的描述</param>
-        /// <param name="healthCheckClass">健康管理类，用于检查该配置项的可用性</param>
-        /// <param name="healthCheckMethod">健康检查的方法名称，该方法必须为健康管理类中可调用的静态方法</param>
-        public OptionDescriptionAttribute(string value, Type healthCheckClass, string healthCheckMethod)
-        {
-            Desc = value;
-            HealthCheckClass = healthCheckClass;
-            HealthCheckMethod = healthCheckMethod;
         }
     }
 }
