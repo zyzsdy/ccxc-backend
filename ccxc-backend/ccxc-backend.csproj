@@ -8,4 +8,14 @@
     <Company>MeowSound Idols</Company>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.ComponentModel.Composition" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ccxc.Core.DbOrm\Ccxc.Core.DbOrm.csproj" />
+    <ProjectReference Include="..\Ccxc.Core.HttpServer\Ccxc.Core.HttpServer.csproj" />
+    <ProjectReference Include="..\Ccxc.Core.Utils\Ccxc.Core.Utils.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -6,7 +6,9 @@ namespace ccxc_backend
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var startUp = new Startup();
+            startUp.Run();
+            startUp.Wait();
         }
     }
 }

@@ -16,14 +16,17 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "E-mail")]
         public string email { get; set; }
 
-        [DbColumn(ColumnDescription = "手机号")]
+        [DbColumn(ColumnDescription = "手机号", IsNullable = true)]
         public string phone { get; set; }
 
         [DbColumn(ColumnDescription = "密码")]
         public string password { get; set; }
 
-        [DbColumn(ColumnDescription = "角色（0-被封禁 1-标准用户 2-组员 3-组长 4-出题组 5-管理员）", DefaultValue = "0")]
-        public int roleid { get; set; } = 0;
+        /// <summary>
+        /// 角色（0-被封禁 1-标准用户 2-组员 3-组长 4-出题组 5-管理员）
+        /// </summary>
+        [DbColumn(DefaultValue = "0")]
+        public int roleid { get; set; }
 
         [JsonConverter(typeof(UnixTimestampConverter))]
         [DbColumn(ColumnDescription = "创建时间", ColumnDataType = "TIMESTAMP", Length = 6)]
@@ -33,10 +36,10 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "更新时间", ColumnDataType = "TIMESTAMP", Length = 6)]
         public DateTime update_time { get; set; }
 
-        [DbColumn(ColumnDescription = "个人简介", ColumnDataType = "TEXT")]
+        [DbColumn(ColumnDescription = "个人简介", ColumnDataType = "TEXT", IsNullable = true)]
         public string profile { get; set; }
 
-        [DbColumn(ColumnDescription = "信息Key")]
+        [DbColumn(ColumnDescription = "信息Key", IsNullable = true)]
         public string info_key { get; set; }
     }
 

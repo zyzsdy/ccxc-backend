@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ccxc.Core.Utils", "Ccxc.Cor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ccxc.Core.DbOrm", "Ccxc.Core.DbOrm\Ccxc.Core.DbOrm.csproj", "{7D770EA7-C750-499D-9333-E69F415AE6B0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Ccxc.Core", "Ccxc.Core", "{181F4F39-1460-42F2-B319-5EAF585EA2E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,6 +38,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{50903920-E06B-4C32-A2A0-D605F74210E4} = {181F4F39-1460-42F2-B319-5EAF585EA2E1}
+		{C5F14DD6-8490-444D-8506-146E44A79338} = {181F4F39-1460-42F2-B319-5EAF585EA2E1}
+		{7D770EA7-C750-499D-9333-E69F415AE6B0} = {181F4F39-1460-42F2-B319-5EAF585EA2E1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {675A2A38-CE84-48A0-9213-C167B0A7BF58}

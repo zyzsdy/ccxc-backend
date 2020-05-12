@@ -4,4 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.0.20" />
+    <PackageReference Include="sqlSugarCoreNoDrive" Version="5.0.0.14" />
+  </ItemGroup>
+
 </Project>

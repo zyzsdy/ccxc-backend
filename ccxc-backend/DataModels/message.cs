@@ -20,7 +20,7 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "发送用户的UID", IndexGroupNameList = new string[] { "index_uid" })]
         public int uid { get; set; }
 
-        [DbColumn(ColumnDescription = "消息内容", ColumnDataType = "TEXT")]
+        [DbColumn(ColumnDescription = "消息内容", ColumnDataType = "TEXT", IsNullable = true)]
         public string content { get; set; }
 
         /// <summary>

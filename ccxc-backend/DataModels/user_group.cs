@@ -5,7 +5,7 @@ using System;
 
 namespace ccxc_backend.DataModels
 {
-    public class group
+    public class user_group
     {
         [DbColumn(IsPrimaryKey = true, IsIdentity = true, ColumnDescription = "组ID")]
         public int gid { get; set; }
@@ -21,13 +21,13 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "更新时间", ColumnDataType = "TIMESTAMP", Length = 6)]
         public DateTime update_time { get; set; }
 
-        [DbColumn(ColumnDescription = "简介", ColumnDataType = "TEXT")]
+        [DbColumn(ColumnDescription = "简介", ColumnDataType = "TEXT", IsNullable = true)]
         public string profile { get; set; }
     }
 
-    public class Group : MysqlClient<group>
+    public class UserGroup : MysqlClient<user_group>
     {
-        public Group(string connStr) : base(connStr)
+        public UserGroup(string connStr) : base(connStr)
         {
 
         }
