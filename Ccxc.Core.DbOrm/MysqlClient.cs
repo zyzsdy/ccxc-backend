@@ -1,7 +1,9 @@
 ﻿using SqlSugar;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Ccxc.Core.DbOrm
 {
@@ -14,6 +16,8 @@ namespace Ccxc.Core.DbOrm
                 return new SqlBaseClient(ConnStr, DbType.MySql, IfInitKeyFromAttribute);
             }
         }
+
+        public IDataCache Cache { get; set; } = null;
 
         protected string ConnStr;
         protected bool IfInitKeyFromAttribute;
@@ -98,6 +102,45 @@ namespace Ccxc.Core.DbOrm
                 }
                 return $"`{name}` = '{prop.GetValue(obj).ToString()}'";
             }));
+        }
+
+        public virtual async Task InvalidateCache()
+        {
+            if (Cache != null)
+            {
+                var tableName = GetTableName();
+                var key = $"/ccxc-backend/datacache/{tableName}";
+                await Cache.Delete(key);
+            }
+        }
+
+        public virtual async Task<List<T>> SelectAllFromCache(bool writeCache = true)
+        {
+            string key = null;
+            if (Cache != null)
+            {
+                var tableName = GetTableName();
+                key = $"/ccxc-backend/datacache/{tableName}";
+
+                var res = await Cache.GetAll<T>(key);
+                if (res != null && res.Count > 0) return res;
+            }
+
+            var result = SimpleDb.GetList();
+            if (writeCache)
+            {
+                var hashvalues = new Dictionary<string, object>();
+
+                foreach (var i in result)
+                {
+                    var pk = GetPkey(i);
+                    hashvalues.Add(pk, i);
+                }
+
+                await Cache?.PutAll(key, hashvalues, 86400000);
+            }
+
+            return result;
         }
     }
 }
