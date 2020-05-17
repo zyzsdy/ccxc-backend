@@ -13,5 +13,13 @@ namespace ccxc_backend.Functions
             var hashedPass = HashTools.HmacSha1Base64(passContent, Config.Config.Options.PassHashKey2);
             return hashedPass;
         }
+
+        public static string GetRandomKey()
+        {
+            var random = new Random();
+            var randomSeed = random.Next(0, int.MaxValue);
+            var rk = HashTools.Md5Base64(randomSeed.ToString());
+            return rk;
+        }
     }
 }

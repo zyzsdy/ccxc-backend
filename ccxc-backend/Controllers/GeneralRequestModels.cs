@@ -23,5 +23,15 @@ namespace ccxc_backend.Controllers
                 message = message
             });
         }
+
+        public static Task Unauthorized(this Response response, string message)
+        {
+            return response.JsonResponse(401, new BasicResponse
+            {
+                status = 3,
+                message = message,
+                location = "/login"
+            });
+        }
     }
 }

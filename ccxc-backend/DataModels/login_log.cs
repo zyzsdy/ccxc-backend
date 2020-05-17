@@ -17,14 +17,20 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "登录名")]
         public string username { get; set; }
 
-        [DbColumn(ColumnDescription = "UID（若登录成功）")]
+        [DbColumn(ColumnDescription = "UID（若用户存在）")]
         public int uid { get; set; }
 
-        [DbColumn(ColumnDescription = "登录状态（0-保留 1-用户名或密码错误 2-没有登录权限 3-登录成功）")]
+        /// <summary>
+        /// 登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限）
+        /// </summary>
+        [DbColumn(ColumnDescription = "登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限）")]
         public byte status { get; set; }
 
         [DbColumn(ColumnDescription = "IP")]
         public string ip { get; set; }
+
+        [DbColumn(ColumnDescription = "代理服务器传递的原始IP")]
+        public string proxy_ip { get; set; }
 
         [DbColumn(ColumnDescription = "用户浏览器UA", ColumnDataType = "TEXT")]
         public string useragent { get; set; }

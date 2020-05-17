@@ -50,4 +50,37 @@ namespace ccxc_backend.DataModels
 
         }
     }
+
+    public class UserSession
+    {
+        public int uid { get; set; }
+        public string username { get; set; }
+        public int roleid { get; set; }
+
+        /// <summary>
+        /// User-Token
+        /// </summary>
+        public string token { get; set; }
+
+        /// <summary>
+        /// 秘密认证Key
+        /// </summary>
+        public string sk { get; set; }
+
+        /// <summary>
+        /// 上次活动时间
+        /// </summary>
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime last_update { get; set; }
+
+        /// <summary>
+        /// 本Session有效性 1-有效 0-无效（视为没有登录）
+        /// </summary>
+        public int is_active { get; set; }
+
+        /// <summary>
+        /// 当Session无效时返回给前端的消息
+        /// </summary>
+        public string inactive_message { get; set; }
+    }
 }

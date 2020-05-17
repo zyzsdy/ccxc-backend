@@ -87,7 +87,17 @@ namespace Ccxc.Core.HttpServer
                     //日志中间件
                     app.Use(async (ctx, next) =>
                     {
-                        Logger.Info($"HTTP Request: {ctx.Request.Method} {ctx.Request.PathBase} {ctx.Request.Path} {ctx.Request.QueryString} {ctx.Connection?.RemoteIpAddress?.ToString()}");
+                        //记录真实IP
+                        var realIp = ctx.Request.Headers["X-Real-IP"];
+                        var forwardIp = ctx.Request.Headers["X-Forwarded-For"];
+                        var ua = ctx.Request.Headers["User-Agent"];
+
+                        ctx.Items.Add("RealIp", realIp);
+                        ctx.Items.Add("ForwardIp", forwardIp);
+                        ctx.Items.Add("UserAgent", ua);
+
+                        //输出Log
+                        Logger.Info($"HTTP Request: {ctx.Request.Method} {ctx.Request.PathBase} {ctx.Request.Path} {ctx.Request.QueryString} {realIp} {forwardIp}");
                         await next.Invoke();
                     });
 
