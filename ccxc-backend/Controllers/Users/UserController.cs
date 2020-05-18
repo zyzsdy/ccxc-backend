@@ -60,10 +60,7 @@ namespace ccxc_backend.Controllers.Users
             await userDb.InvalidateCache();
 
             //返回
-            await response.JsonResponse(200, new BasicResponse
-            {
-                status = 1
-            });
+            await response.OK();
         }
 
         [HttpHandler("POST", "/user-login")]
@@ -184,6 +181,19 @@ namespace ccxc_backend.Controllers.Users
                     sk = sk
                 }
             });
+        }
+
+        [HttpHandler("POST", "/user-logout")]
+        public async Task UserLogout(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var cache = DbFactory.GetCache();
+            var sessionKey = cache.GetUserSessionKey(userSession.token);
+            await cache.Delete(sessionKey);
+
+            await response.OK();
         }
     }
 }

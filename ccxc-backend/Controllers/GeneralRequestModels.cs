@@ -15,6 +15,14 @@ namespace ccxc_backend.Controllers
 
     public static class ResponseExtend
     {
+        public static Task OK(this Response response)
+        {
+            return response.JsonResponse(200, new BasicResponse
+            {
+                status = 1
+            });
+        }
+
         public static Task BadRequest(this Response response, string message)
         {
             return response.JsonResponse(400, new BasicResponse
@@ -28,9 +36,8 @@ namespace ccxc_backend.Controllers
         {
             return response.JsonResponse(401, new BasicResponse
             {
-                status = 3,
-                message = message,
-                location = "/login"
+                status = 4,
+                message = message
             });
         }
     }
