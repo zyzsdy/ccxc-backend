@@ -38,4 +38,13 @@ namespace ccxc_backend.Controllers.Users
             public string sk { get; set; }
         }
     }
+
+    public class ModifyPasswordRequest
+    {
+        [Required(Message = "原密码不能为空")]
+        public string old_pass { get; set; }
+
+        [Required(Message = "新密码不能为空")]
+        public string pass { get; set; }
+    }
 }

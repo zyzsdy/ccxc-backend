@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ccxc_backend.Controllers.Users
@@ -192,6 +190,49 @@ namespace ccxc_backend.Controllers.Users
             var cache = DbFactory.GetCache();
             var sessionKey = cache.GetUserSessionKey(userSession.token);
             await cache.Delete(sessionKey);
+
+            await response.OK();
+        }
+
+        [HttpHandler("POST", "/modify-password")]
+        public async Task ModifyPassword(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<ModifyPasswordRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //取出当前用户信息
+            var userDb = DbFactory.Get<User>();
+
+            var user = await userDb.SimpleDb.AsQueryable().Where(it => it.uid == userSession.uid).FirstAsync();
+            if(user == null || user.roleid < 1)
+            {
+                await response.Unauthorized("用户不存在或不允许当前用户进行操作。");
+                return;
+            }
+
+            //验证原密码
+            var oldPass = CryptoUtils.GetLoginHash(requestJson.old_pass);
+            if(oldPass != user.password)
+            {
+                await response.BadRequest("原密码不正确。");
+                return;
+            }
+
+            //新密码写入数据库
+            user.password = CryptoUtils.GetLoginHash(requestJson.pass);
+            user.update_time = DateTime.Now;
+
+            await userDb.SimpleDb.AsUpdateable(user).ExecuteCommandAsync();
+            await userDb.InvalidateCache();
 
             await response.OK();
         }

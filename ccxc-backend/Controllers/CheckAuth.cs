@@ -69,7 +69,7 @@ namespace ccxc_backend.Controllers
             var diff = Math.Abs((DateTime.Now - signedTime).TotalMinutes);
             if(diff > 5)
             {
-                await response.Unauthorized("禁止重放。");
+                await response.Unauthorized($"客户端时钟不准，无法完成加密认证。请调整至正确的时间。服务器时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
                 return null;
             }
 

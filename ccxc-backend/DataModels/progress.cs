@@ -18,14 +18,14 @@ namespace ccxc_backend.DataModels
         public double score { get; set; }
 
         [JsonConverter(typeof(UnixTimestampConverter))]
-        [DbColumn(ColumnDescription = "更新时间", ColumnDataType = "TIMESTAMP", Length = 6)]
+        [DbColumn(ColumnDescription = "更新时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
         public DateTime update_time { get; set; }
 
         [DbColumn(ColumnDescription = "是否完赛（0-未完赛 1-完赛）")]
         public byte is_finish { get; set; }
 
         [JsonConverter(typeof(UnixTimestampConverter))]
-        [DbColumn(ColumnDescription = "完成时间", ColumnDataType = "TIMESTAMP", Length = 6)]
+        [DbColumn(ColumnDescription = "完成时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
         public DateTime finish_time { get; set; }
 
         [DbColumn(ColumnDescription = "罚时（单位小时）")]

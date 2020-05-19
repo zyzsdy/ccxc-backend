@@ -11,7 +11,7 @@ namespace ccxc_backend.DataModels
         public int id { get; set; }
 
         [JsonConverter(typeof(UnixTimestampConverter))]
-        [DbColumn(ColumnDescription = "记录时间", ColumnDataType = "TIMESTAMP", Length = 6)]
+        [DbColumn(ColumnDescription = "记录时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
         public DateTime create_time { get; set; }
 
         [DbColumn(ColumnDescription = "登录名")]
