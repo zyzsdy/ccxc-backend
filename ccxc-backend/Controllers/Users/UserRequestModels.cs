@@ -1,4 +1,7 @@
 ﻿using Ccxc.Core.HttpServer;
+using Ccxc.Core.Utils.ExtensionFunctions;
+using ccxc_backend.DataModels;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -46,5 +49,63 @@ namespace ccxc_backend.Controllers.Users
 
         [Required(Message = "新密码不能为空")]
         public string pass { get; set; }
+    }
+
+    public class UserInfo
+    {
+        public int uid { get; set; }
+        public string username { get; set; }
+        public string email { get; set; }
+        public string phone { get; set; }
+        public int roleid { get; set; }
+
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime create_time { get; set; }
+
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        public DateTime update_time { get; set; }
+        public string profile { get; set; }
+
+        public UserInfo(user d)
+        {
+            uid = d.uid;
+            username = d.username;
+            email = d.email;
+            phone = d.phone;
+            roleid = d.roleid;
+            create_time = d.create_time;
+            update_time = d.update_time;
+            profile = d.profile;
+        }
+
+        public UserInfo()
+        {
+
+        }
+    }
+
+    public class GroupInfo : user_group
+    {
+        public List<UserInfo> member_list { get; set; }
+
+        public GroupInfo(user_group d)
+        {
+            gid = d.gid;
+            groupname = d.groupname;
+            create_time = d.create_time;
+            update_time = d.update_time;
+            profile = d.profile;
+        }
+
+        public GroupInfo()
+        {
+
+        }
+    }
+
+    public class MyProfileResponse : BasicResponse
+    {
+        public UserInfo user_info { get; set; }
+        public GroupInfo group_info { get; set; }
     }
 }
