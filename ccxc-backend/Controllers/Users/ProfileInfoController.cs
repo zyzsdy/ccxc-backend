@@ -58,7 +58,10 @@ namespace ccxc_backend.Controllers.Users
                             var memberUid = it.uid;
                             if (userDict.ContainsKey(memberUid))
                             {
-                                return new UserInfo(userDict[memberUid]);
+                                var sUser = new UserInfo(userDict[memberUid]);
+                                sUser.email = "";
+                                sUser.phone = "";
+                                return sUser;
                             }
                             else
                             {

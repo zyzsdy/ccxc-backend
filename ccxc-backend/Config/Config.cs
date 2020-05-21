@@ -34,8 +34,11 @@ namespace ccxc_backend.Config
         [OptionDescription("默认罚时时间，单位小时，默认12.0")]
         public double PenaltyDefault { get; set; } = 12.0;
 
-        [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2020-08-07 20:00:00 +0800")]
+        [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2020-08-07 20:00:00 +0800 aka. 1596801600000")]
         public long StartTime { get; set; } = 1596801600000;
+
+        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-01 20:00:00 +0800 aka. 1596283200000")]
+        public long RegDeadline { get; set; } = 1596283200000;
 
         public static Config Options { get; set; } = SystemOption.GetOption<Config>("Config/CcxcConfig.xml");
     }

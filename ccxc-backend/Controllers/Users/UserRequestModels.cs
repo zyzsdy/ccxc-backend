@@ -51,6 +51,14 @@ namespace ccxc_backend.Controllers.Users
         public string pass { get; set; }
     }
 
+    public class EditUserRequest
+    {
+        [Required(Message = "E-mail不能为空")]
+        public string email { get; set; }
+        public string phone { get; set; }
+        public string profile { get; set; }
+    }
+
     public class UserInfo
     {
         public int uid { get; set; }

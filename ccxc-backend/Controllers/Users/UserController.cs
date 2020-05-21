@@ -236,5 +236,48 @@ namespace ccxc_backend.Controllers.Users
 
             await response.OK();
         }
+
+        [HttpHandler("POST", "/edit-user")]
+        public async Task EditUser(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<EditUserRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //取出当前用户信息
+            var userDb = DbFactory.Get<User>();
+
+            var user = await userDb.SimpleDb.AsQueryable().Where(it => it.uid == userSession.uid).FirstAsync();
+            if (user == null || user.roleid < 1)
+            {
+                await response.Unauthorized("用户不存在或不允许当前用户进行操作。");
+                return;
+            }
+
+            //写入新信息
+            user.email = requestJson.email;
+            user.phone = requestJson.phone;
+
+            var newProfileString = requestJson.profile;
+            if(newProfileString.Length > 350)
+            {
+                newProfileString = newProfileString.Substring(0, 350);
+            }
+            user.profile = newProfileString;
+            user.update_time = DateTime.Now;
+
+            await userDb.SimpleDb.AsUpdateable(user).ExecuteCommandAsync();
+            await userDb.InvalidateCache();
+
+            await response.OK();
+        }
     }
 }
