@@ -23,12 +23,14 @@ namespace ccxc_backend.Controllers
     {
         /// <summary>
         /// authLevel 认证等级（0-被封禁 1-标准用户 2-组员 3-组长 4-出题组 5-管理员）
+        /// onlyInGaming 是否为在比赛允许时间内才可调用的API（默认为false，设为true时只有比赛期间内可以调用）
         /// </summary>
         /// <param name="request"></param>
         /// <param name="response"></param>
         /// <param name="authLevel"></param>
+        /// <param name="onlyInGaming"></param>
         /// <returns></returns>
-        public async static Task<UserSession> Check(Request request, Response response, AuthLevel authLevel)
+        public async static Task<UserSession> Check(Request request, Response response, AuthLevel authLevel, bool onlyInGaming = false)
         {
             IDictionary<string, object> headers = request.Header;
             if (!headers.ContainsKey("User-Token"))
@@ -91,6 +93,29 @@ namespace ccxc_backend.Controllers
                 await response.Unauthorized(userSession.inactive_message);
                 return null;
             }
+
+            //是否在比赛期间认证
+            if (onlyInGaming)
+            {
+                var now = DateTime.Now;
+                var startTime = UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime);
+                var endTime = UnixTimestamp.FromTimestamp(Config.Config.Options.EndTime);
+
+                if (userSession.is_betaUser != 1)
+                {
+                    if(now < startTime)
+                    {
+                        await response.BadRequest("未到开赛时间");
+                        return null;
+                    }
+                    else if(now >= endTime)
+                    {
+                        await response.BadRequest("比赛时间已过，感谢您的参与！");
+                        return null;
+                    }
+                }
+            }
+
 
             //计算签名
             var sk = userSession.sk;

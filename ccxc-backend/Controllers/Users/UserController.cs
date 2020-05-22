@@ -156,7 +156,8 @@ namespace ccxc_backend.Controllers.Users
                 token = uuid,
                 sk = sk,
                 last_update = DateTime.Now,
-                is_active = 1
+                is_active = 1,
+                is_betaUser = (user.info_key == "beta_user") ? 1 : 0 //若info_key内容为beta_user，则授予测试用户权限
             };
 
             //保存当前Session

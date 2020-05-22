@@ -82,5 +82,10 @@ namespace ccxc_backend.DataModels
         /// 当Session无效时返回给前端的消息
         /// </summary>
         public string inactive_message { get; set; }
+
+        /// <summary>
+        /// 是否为内测用户 0-普通用户 1-内测用户（内测用户无视开赛时间设置，可在任何时间范围内提交）
+        /// </summary>
+        public int is_betaUser { get; set; }
     }
 }
