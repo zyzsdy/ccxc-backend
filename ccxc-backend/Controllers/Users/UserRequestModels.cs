@@ -116,4 +116,28 @@ namespace ccxc_backend.Controllers.Users
         public UserInfo user_info { get; set; }
         public GroupInfo group_info { get; set; }
     }
+
+    public class SearchNoGroupUserRequest
+    {
+        public string kw_uname { get; set; }
+    }
+
+    public class SearchNoGroupUserResponse : BasicResponse
+    {
+        public List<UserSearchResult> result { get; set; }
+
+        public class UserSearchResult
+        {
+            public int uid { get; set; }
+            public string username { get; set; }
+
+            public UserSearchResult() { }
+
+            public UserSearchResult(user u)
+            {
+                uid = u.uid;
+                username = u.username;
+            }
+        }
+    }
 }
