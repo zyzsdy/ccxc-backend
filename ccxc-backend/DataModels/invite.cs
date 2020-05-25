@@ -23,7 +23,7 @@ namespace ccxc_backend.DataModels
         /// <summary>
         /// 邀请有效性（0-已被撤回 1-有效 2-已被拒绝）
         /// </summary>
-        [DbColumn(ColumnDescription = "邀请有效性（0-已被撤回 1-有效 2-已被拒绝）")]
+        [DbColumn(ColumnDescription = "邀请有效性（0-已被撤回 1-有效 2-已被拒绝 3-已接受）")]
         public byte valid { get; set; }
     }
 

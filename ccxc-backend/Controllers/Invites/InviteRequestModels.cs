@@ -33,7 +33,7 @@ namespace ccxc_backend.Controllers.Invites
         }
     }
 
-    public class InvalidInviteRequest
+    public class IidInviteRequest
     {
         [Required(Message = "未选中邀请")]
         public int iid { get; set; }

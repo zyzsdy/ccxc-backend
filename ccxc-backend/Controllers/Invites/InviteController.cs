@@ -147,7 +147,7 @@ namespace ccxc_backend.Controllers.Invites
             var userSession = await CheckAuth.Check(request, response, AuthLevel.TeamLeader);
             if (userSession == null) return;
 
-            var requestJson = request.Json<InvalidInviteRequest>();
+            var requestJson = request.Json<IidInviteRequest>();
 
             //判断请求是否有效
             if (!Validation.Valid(requestJson, out string reason))
@@ -230,7 +230,7 @@ namespace ccxc_backend.Controllers.Invites
             var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
             if (userSession == null) return;
 
-            var requestJson = request.Json<InvalidInviteRequest>();
+            var requestJson = request.Json<IidInviteRequest>();
 
             //判断请求是否有效
             if (!Validation.Valid(requestJson, out string reason))
@@ -259,6 +259,86 @@ namespace ccxc_backend.Controllers.Invites
 
             await inviteDb.SimpleDb.AsUpdateable(inviteItem).ExecuteCommandAsync();
             await inviteDb.InvalidateCache();
+
+            await response.OK();
+        }
+
+        [HttpHandler("POST", "/accept-invite")]
+        public async Task AcceptInvite(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<IidInviteRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //读取用户设置
+            var userDb = DbFactory.Get<User>();
+            var userList = await userDb.SelectAllFromCache();
+
+            var user = userList.FirstOrDefault(it => it.uid == userSession.uid);
+
+            if (user == null)
+            {
+                await response.BadRequest("活见鬼了");
+                return;
+            }
+
+            //读取目标iid
+            var inviteDb = DbFactory.Get<Invite>();
+            var inviteItem = inviteDb.SimpleDb.GetById(requestJson.iid);
+
+            if (inviteItem == null || inviteItem.valid != 1)
+            {
+                await response.BadRequest("无效邀请");
+                return;
+            }
+
+            if (inviteItem.to_uid != userSession.uid)
+            {
+                await response.BadRequest("无修改权限");
+            }
+
+            //将目标置为无效
+            inviteItem.valid = 3;
+
+            await inviteDb.SimpleDb.AsUpdateable(inviteItem).ExecuteCommandAsync();
+            await inviteDb.InvalidateCache();
+
+            //取得该GID已绑定人数
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var numberOfGroup = groupBindList.Count(it => it.gid == inviteItem.from_gid);
+
+            if (numberOfGroup >= 5)
+            {
+                await response.BadRequest("组队人数已满，无法加入。");
+                return;
+            }
+
+            //插入组绑定
+            var newGroupBindDb = new user_group_bind
+            {
+                uid = user.uid,
+                gid = inviteItem.from_gid,
+                is_leader = 0
+            };
+            await groupBindDb.SimpleDb.AsInsertable(newGroupBindDb).ExecuteCommandAsync();
+            await groupBindDb.InvalidateCache();
+
+            //修改用户设置
+            user.roleid = 2;
+            user.update_time = DateTime.Now;
+
+            await userDb.SimpleDb.AsUpdateable(user).ExecuteCommandAsync();
+            await userDb.InvalidateCache();
 
             await response.OK();
         }
