@@ -81,9 +81,20 @@ namespace ccxc_backend.Controllers.Invites
                 return;
             }
 
+            //判断用户是否已被邀请
+            var inviteDb = DbFactory.Get<Invite>();
+            var vlist = await inviteDb.SimpleDb.AsQueryable()
+                .Where(it => it.from_gid == gid && it.to_uid == sendToUser.uid && it.valid == 1)
+                .ToListAsync();
+            if(vlist != null && vlist.Count > 0)
+            {
+                await response.BadRequest("该用户已发送过邀请。");
+                return;
+            }
+
 
             //插入邀请信息表
-            var inviteDb = DbFactory.Get<Invite>();
+
             var newInvite = new invite
             {
                 create_time = DateTime.Now,
@@ -200,8 +211,8 @@ namespace ccxc_backend.Controllers.Invites
             if (userSession == null) return;
 
             //读取基础数据
-            var userDb = DbFactory.Get<User>();
-            var userNameDict = (await userDb.SelectAllFromCache()).ToDictionary(it => it.uid, it => it.username);
+            var groupDb = DbFactory.Get<UserGroup>();
+            var groupNameDict = (await groupDb.SelectAllFromCache()).ToDictionary(it => it.gid, it => it.groupname);
 
             //读取仍然为有效状态的邀请
             var inviteDb = DbFactory.Get<Invite>();
@@ -210,9 +221,9 @@ namespace ccxc_backend.Controllers.Invites
             var res = result.Select(it =>
             {
                 var r = new ListSentResponse.InviteView(it);
-                if (userNameDict.ContainsKey(r.to_uid))
+                if (groupNameDict.ContainsKey(r.from_gid))
                 {
-                    r.to_username = userNameDict[r.to_uid];
+                    r.from_groupname = groupNameDict[r.from_gid];
                 }
                 return r;
             }).ToList();
@@ -307,9 +318,7 @@ namespace ccxc_backend.Controllers.Invites
 
             //将目标置为无效
             inviteItem.valid = 3;
-
             await inviteDb.SimpleDb.AsUpdateable(inviteItem).ExecuteCommandAsync();
-            await inviteDb.InvalidateCache();
 
             //取得该GID已绑定人数
             var groupBindDb = DbFactory.Get<UserGroupBind>();
@@ -320,8 +329,14 @@ namespace ccxc_backend.Controllers.Invites
             if (numberOfGroup >= 5)
             {
                 await response.BadRequest("组队人数已满，无法加入。");
+                await inviteDb.InvalidateCache();
                 return;
             }
+
+            //自动拒绝该用户所有未拒绝的邀请
+            await inviteDb.Db.Updateable<invite>().SetColumns(it => it.valid == 2)
+                .Where(it => it.to_uid == userSession.uid && it.valid == 1).ExecuteCommandAsync();
+            await inviteDb.InvalidateCache();
 
             //插入组绑定
             var newGroupBindDb = new user_group_bind

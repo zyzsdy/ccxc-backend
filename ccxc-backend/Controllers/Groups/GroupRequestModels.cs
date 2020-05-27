@@ -12,4 +12,10 @@ namespace ccxc_backend.Controllers.Groups
 
         public string profile { get; set; }
     }
+
+    public class RemoveGroupRequest
+    {
+        [Required(Message = "UID不能为空")]
+        public int uid { get; set; }
+    }
 }

@@ -268,7 +268,7 @@ namespace ccxc_backend.Controllers.Users
             user.phone = requestJson.phone;
 
             var newProfileString = requestJson.profile;
-            if(newProfileString.Length > 350)
+            if(newProfileString != null && newProfileString.Length > 350)
             {
                 newProfileString = newProfileString.Substring(0, 350);
             }

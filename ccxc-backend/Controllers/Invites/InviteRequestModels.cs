@@ -20,6 +20,8 @@ namespace ccxc_backend.Controllers.Invites
         {
             public string to_username { get; set; }
 
+            public string from_groupname { get; set; }
+
             public InviteView() { }
 
             public InviteView(invite i)
