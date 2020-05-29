@@ -75,6 +75,7 @@ namespace ccxc_backend.Controllers.Users
 
             var requestJson = request.Json<UserLoginRequest>();
             loginLog.username = requestJson.username;
+            loginLog.userid = requestJson.userid;
 
             //判断请求是否有效
             if (!Validation.Valid(requestJson, out string reason))

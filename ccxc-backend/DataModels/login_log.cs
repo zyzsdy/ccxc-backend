@@ -34,6 +34,9 @@ namespace ccxc_backend.DataModels
 
         [DbColumn(ColumnDescription = "用户浏览器UA", ColumnDataType = "TEXT")]
         public string useragent { get; set; }
+
+        [DbColumn(ColumnDescription = "用户浏览器识别码")]
+        public long userid { get; set; }
     }
 
     public class LoginLog : MysqlClient<login_log>

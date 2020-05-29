@@ -27,6 +27,8 @@ namespace ccxc_backend.Controllers.Users
 
         [Required(Message = "密码不能为空")]
         public string pass { get; set; }
+
+        public long userid { get; set; }
     }
 
     public class UserLoginResponse : BasicResponse
