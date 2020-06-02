@@ -22,8 +22,8 @@ namespace ccxc_backend.Controllers.Users
 
     public class UserLoginRequest
     {
-        [Required(Message = "用户名不能为空")]
-        public string username { get; set; }
+        [Required(Message = "E-mail不能为空")]
+        public string email { get; set; }
 
         [Required(Message = "密码不能为空")]
         public string pass { get; set; }
@@ -55,6 +55,9 @@ namespace ccxc_backend.Controllers.Users
 
     public class EditUserRequest
     {
+        [Required(Message = "用户名不能为空")]
+        public string username { get; set; }
+
         [Required(Message = "E-mail不能为空")]
         public string email { get; set; }
         public string phone { get; set; }

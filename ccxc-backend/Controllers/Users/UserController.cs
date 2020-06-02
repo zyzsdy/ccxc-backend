@@ -37,7 +37,7 @@ namespace ccxc_backend.Controllers.Users
                 return;
             }
 
-            var emailSet = new HashSet<string>(userList.Select(it => it.username));
+            var emailSet = new HashSet<string>(userList.Select(it => it.email));
             if (emailSet.Contains(requestJson.email))
             {
                 await response.BadRequest("E-mail已被使用，请使用其他邮箱。");
@@ -74,7 +74,7 @@ namespace ccxc_backend.Controllers.Users
             };
 
             var requestJson = request.Json<UserLoginRequest>();
-            loginLog.username = requestJson.username;
+            loginLog.email = requestJson.email;
             loginLog.userid = requestJson.userid;
 
             //判断请求是否有效
@@ -89,9 +89,9 @@ namespace ccxc_backend.Controllers.Users
 
             //数据库对象
             var userDb = DbFactory.Get<User>();
-            var userDict = (await userDb.SelectAllFromCache()).ToDictionary(it => it.username, it => it);
+            var userDict = (await userDb.SelectAllFromCache()).ToDictionary(it => it.email, it => it);
 
-            if (!userDict.ContainsKey(requestJson.username))
+            if (!userDict.ContainsKey(requestJson.email))
             {
                 //用户不存在
                 loginLog.status = 3;
@@ -102,8 +102,9 @@ namespace ccxc_backend.Controllers.Users
             }
 
 
-            var user = userDict[requestJson.username];
+            var user = userDict[requestJson.email];
             loginLog.uid = user.uid;
+            loginLog.username = user.username;
 
             var hashedPass = CryptoUtils.GetLoginHash(requestJson.pass);
             if (hashedPass != user.password)
@@ -135,7 +136,7 @@ namespace ccxc_backend.Controllers.Users
             foreach (var session in sessions)
             {
                 var oldSession = await cache.Get<UserSession>(session);
-                if (oldSession != null && oldSession.username == user.username)
+                if (oldSession != null && oldSession.uid == user.uid)
                 {
                     oldSession.is_active = 0;
                     oldSession.last_update = DateTime.Now;
@@ -256,6 +257,7 @@ namespace ccxc_backend.Controllers.Users
 
             //取出当前用户信息
             var userDb = DbFactory.Get<User>();
+            var userList = await userDb.SelectAllFromCache();
 
             var user = await userDb.SimpleDb.AsQueryable().Where(it => it.uid == userSession.uid).FirstAsync();
             if (user == null || user.roleid < 1)
@@ -264,8 +266,35 @@ namespace ccxc_backend.Controllers.Users
                 return;
             }
 
+            bool loginInfoUpdate = false;
+            //判断是否重复
+            if (user.username != requestJson.username)
+            {
+                var userNameSet = new HashSet<string>(userList.Select(it => it.username));
+                if (userNameSet.Contains(requestJson.username))
+                {
+                    await response.BadRequest("用户名已被使用，请选择其他用户名。");
+                    return;
+                }
+
+                user.username = requestJson.username;
+                loginInfoUpdate = true;
+            }
+
+            if (user.email != requestJson.email)
+            {
+                var emailSet = new HashSet<string>(userList.Select(it => it.email));
+                if (emailSet.Contains(requestJson.email))
+                {
+                    await response.BadRequest("E-mail已被使用，请使用其他邮箱。");
+                    return;
+                }
+
+                user.email = requestJson.email;
+                loginInfoUpdate = true;
+            }
+
             //写入新信息
-            user.email = requestJson.email;
             user.phone = requestJson.phone;
 
             var newProfileString = requestJson.profile;
@@ -279,7 +308,18 @@ namespace ccxc_backend.Controllers.Users
             await userDb.SimpleDb.AsUpdateable(user).ExecuteCommandAsync();
             await userDb.InvalidateCache();
 
-            await response.OK();
+            if (loginInfoUpdate)
+            {
+                await response.JsonResponse(200, new BasicResponse
+                {
+                    status = 13,
+                    message = "您修改了登录信息，请重新登录。"
+                });
+            }
+            else
+            {
+                await response.OK();
+            }
         }
     }
 }

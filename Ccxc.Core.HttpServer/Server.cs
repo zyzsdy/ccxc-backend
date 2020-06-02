@@ -88,7 +88,7 @@ namespace Ccxc.Core.HttpServer
                     app.Use(async (ctx, next) =>
                     {
                         //记录真实IP
-                        var realIp = ctx.Request.Headers["X-Real-IP"];
+                        var realIp = ctx.Request.Headers["CF-Connecting-IP"];
                         var forwardIp = ctx.Request.Headers["X-Forwarded-For"];
                         var ua = ctx.Request.Headers["User-Agent"];
 

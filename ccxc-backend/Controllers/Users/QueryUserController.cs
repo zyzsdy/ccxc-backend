@@ -29,13 +29,13 @@ namespace ccxc_backend.Controllers.Users
                 return;
             }
 
-            var keyword = requestJson.kw_uname;
+            var keyword = requestJson.kw_uname.ToLower();
 
             //读入roleid == 1（没有组队）的用户列表
             var userDb = DbFactory.Get<User>();
             var userList = await userDb.SelectAllFromCache();
 
-            var res = userList.Where(it => it.roleid == 1 && (string.IsNullOrEmpty(keyword) || it.username.Contains(keyword)))
+            var res = userList.Where(it => it.roleid == 1 && (string.IsNullOrEmpty(keyword) || it.username.ToLower().Contains(keyword)))
                               .Select(it => new SearchNoGroupUserResponse.UserSearchResult(it)).ToList();
 
             await response.JsonResponse(200, new SearchNoGroupUserResponse

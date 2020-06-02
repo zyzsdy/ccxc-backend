@@ -6,7 +6,7 @@ namespace ccxc_backend.Controllers
     public class BasicResponse
     {
         /// <summary>
-        /// 0-保留 1-成功 2-失败，message为错误提示 3-失败，并跳转location指定URL 4-失败并立即注销
+        /// 0-保留 1-成功 2-失败，message为错误提示 3-失败，并跳转location指定URL 4-失败并立即注销 13-成功并立即注销
         /// </summary>
         public int status { get; set; }
         public string message { get; set; }

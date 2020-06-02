@@ -14,7 +14,10 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "记录时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
         public DateTime create_time { get; set; }
 
-        [DbColumn(ColumnDescription = "登录名")]
+        [DbColumn(ColumnDescription = "E-mail（用户请求）")]
+        public string email { get; set; }
+
+        [DbColumn(ColumnDescription = "登录名（若用户存在）", IsNullable = true)]
         public string username { get; set; }
 
         [DbColumn(ColumnDescription = "UID（若用户存在）")]
