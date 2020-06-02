@@ -18,4 +18,10 @@
     <ProjectReference Include="..\Ccxc.Core.Utils\Ccxc.Core.Utils.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ccxc.service">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

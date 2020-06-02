@@ -7,6 +7,8 @@
   <ItemGroup>
     <PackageReference Include="MySql.Data" Version="8.0.20" />
     <PackageReference Include="sqlSugarCoreNoDrive" Version="5.0.0.14" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+    <PackageReference Include="System.Threading.ThreadPool" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

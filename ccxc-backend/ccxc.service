@@ -1,0 +1,11 @@
+﻿[Unit]
+Description=Ccxc Backend
+
+[Service]
+ExecStart=/var/ccxc-backend/ccxc-backend
+Restart=always
+Environment=PATH=/usr/bin:/usr/local/bin:/usr/local/node/bin
+WorkingDirectory=/var/ccxc-backend/
+
+[Install]
+WantedBy=multi-user.target
