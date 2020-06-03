@@ -72,9 +72,9 @@ namespace Ccxc.Core.HttpServer
             var headerDict = new Dictionary<string, string>();
             foreach (var kv in RawRequest.Headers)
             {
-                if (!headerDict.ContainsKey(kv.Key))
+                if (!headerDict.ContainsKey(kv.Key.ToLower()))
                 {
-                    headerDict.Add(kv.Key, kv.Value);
+                    headerDict.Add(kv.Key.ToLower(), kv.Value);
                 }
             }
             return headerDict.ToDynamic();

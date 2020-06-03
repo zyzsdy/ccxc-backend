@@ -33,21 +33,22 @@ namespace ccxc_backend.Controllers
         public async static Task<UserSession> Check(Request request, Response response, AuthLevel authLevel, bool onlyInGaming = false)
         {
             IDictionary<string, object> headers = request.Header;
-            if (!headers.ContainsKey("User-Token"))
+
+            if (!headers.ContainsKey("user-token"))
             {
                 await response.BadRequest("请求格式不完整：User-Token 不可为空。");
                 return null;
             }
 
-            var token = headers["User-Token"].ToString();
+            var token = headers["user-token"].ToString();
 
-            if (!headers.ContainsKey("X-Auth-Token"))
+            if (!headers.ContainsKey("x-auth-token"))
             {
                 await response.BadRequest("请求格式不完整：X-Auth-Token 不可为空。");
                 return null;
             }
 
-            var xAuthToken = headers["X-Auth-Token"].ToString();
+            var xAuthToken = headers["x-auth-token"].ToString();
             var xAuth = xAuthToken.Split(" ").Select(it => it.Trim()).ToList();
 
             if(xAuth.Count != 3)
