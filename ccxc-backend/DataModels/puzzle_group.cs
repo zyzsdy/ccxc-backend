@@ -12,6 +12,9 @@ namespace ccxc_backend.DataModels
 
         [DbColumn(ColumnDescription = "题目组名")]
         public string pg_name { get; set; }
+
+        [DbColumn(ColumnDescription = "题目组描述", ColumnDataType = "TEXT", IsNullable = true)]
+        public string pg_desc { get; set; }
     }
 
     public class PuzzleGroup : MysqlClient<puzzle_group>

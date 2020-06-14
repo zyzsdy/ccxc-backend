@@ -29,12 +29,12 @@ namespace ccxc_backend.DataModels
         public int roleid { get; set; }
 
         [JsonConverter(typeof(UnixTimestampConverter))]
-        [DbColumn(ColumnDescription = "创建时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
-        public DateTime create_time { get; set; }
-
-        [JsonConverter(typeof(UnixTimestampConverter))]
         [DbColumn(ColumnDescription = "更新时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
         public DateTime update_time { get; set; }
+
+        [JsonConverter(typeof(UnixTimestampConverter))]
+        [DbColumn(ColumnDescription = "创建时间", ColumnDataType = "TIMESTAMP", Length = 6, DefaultValue = "0000-00-00 00:00:00.000000")]
+        public DateTime create_time { get; set; }
 
         [DbColumn(ColumnDescription = "个人简介", ColumnDataType = "TEXT", IsNullable = true)]
         public string profile { get; set; }
