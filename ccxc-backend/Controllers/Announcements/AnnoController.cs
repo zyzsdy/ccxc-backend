@@ -112,18 +112,20 @@ namespace ccxc_backend.Controllers.Announcements
             }
 
             var annoDb = DbFactory.Get<Announcement>();
-            var annoList = await annoDb.SelectAllFromCache();
+            IEnumerable<announcement> annoList = await annoDb.SelectAllFromCache();
 
             if(requestJson.aids != null && requestJson.aids.Count > 0)
             {
                 var aidSet = new HashSet<int>(requestJson.aids);
-                annoList = annoList.Where(it => aidSet.Contains(it.aid)).ToList();
+                annoList = annoList.Where(it => aidSet.Contains(it.aid));
             }
+
+            annoList = annoList.OrderByDescending(it => it.create_time);
 
             await response.JsonResponse(200, new GetAnnoResponse
             {
                 status = 1,
-                announcements = annoList
+                announcements = annoList.ToList()
             });
         }
     }
