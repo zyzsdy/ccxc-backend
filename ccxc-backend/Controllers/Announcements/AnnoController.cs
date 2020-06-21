@@ -19,7 +19,7 @@ namespace ccxc_backend.Controllers.Announcements
         {
             var now = DateTime.Now;
 
-            var userSession = await CheckAuth.Check(request, response, AuthLevel.Administrator);
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
             if (userSession == null) return;
 
             var requestJson = request.Json<AddAnnoRequest>();
@@ -49,7 +49,7 @@ namespace ccxc_backend.Controllers.Announcements
         [HttpHandler("POST", "/admin/delete-announcement")]
         public async Task DeleteAnnouncement(Request request, Response response)
         {
-            var userSession = await CheckAuth.Check(request, response, AuthLevel.Administrator);
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
             if (userSession == null) return;
 
             var requestJson = request.Json<DeleteAnnoRequest>();
@@ -72,7 +72,7 @@ namespace ccxc_backend.Controllers.Announcements
         [HttpHandler("POST", "/admin/edit-announcement")]
         public async Task EditAnnouncement(Request request, Response response)
         {
-            var userSession = await CheckAuth.Check(request, response, AuthLevel.Administrator);
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
             if (userSession == null) return;
 
             var requestJson = request.Json<EditAnnoRequest>();

@@ -19,6 +19,12 @@ namespace ccxc_backend.Config
         [OptionDescription("调试模式：调试模式打开时，捕获的异常详情将通过HTTP直接返回给客户端，关闭时只返回简单错误消息和500提示码。True-打开 False-关闭，默认为False")]
         public bool DebugMode { get; set; } = false;
 
+        [OptionDescription("图片存储目录，上传的图片将会存放在这里。")]
+        public string ImageStorage { get; set; } = "D:/MyWorks/ccxc/static.ccxc.online/static/images";
+
+        [OptionDescription("图片访问前缀")]
+        public string ImagePrefix { get; set; } = "https://cc.minyami.net/static/images/";
+
         [OptionDescription("密码Hash种子1，请自由设置，设置后不要修改")]
         public string PassHashKey1 { get; set; } = "TqCoLoRdYy,25zWAITn";
 

@@ -11,13 +11,14 @@ namespace Ccxc.Core.HttpServer.Middlewares
             {
                 //启用简易CORS
                 SetHeader(ctx.Response, "Access-Control-Allow-Origin", "*");
+                SetHeader(ctx.Response, "Server", "Ccxc-Server/1.1.0 (2020-7-1)");
 
                 //处理OPTIONS请求
                 var method = ctx.Request.Method.ToUpper();
                 if (method == "OPTIONS")
                 {
                     SetHeader(ctx.Response, "Access-Control-Allow-Method", "GET, POST, PUT, DELETE");
-                    SetHeader(ctx.Response, "Access-Control-Allow-Headers", "Content-Type, User-Token, X-Requested-With, X-Auth-Token");
+                    SetHeader(ctx.Response, "Access-Control-Allow-Headers", "Content-Type, User-Token, X-Requested-With, X-Auth-Token, Upload-Token");
                     ctx.Response.StatusCode = 204;
                 }
                 else
