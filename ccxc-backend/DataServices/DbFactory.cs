@@ -11,14 +11,14 @@ namespace ccxc_backend.DataServices
             var dbConnStr = Config.Config.Options.DbConnStr;
 
             //创建所需数据库实例对象，将dbConnStr作为参数注入
-            Type serviceType = typeof(T);
-            object serviceInstance = Activator.CreateInstance(serviceType, new object[] { dbConnStr });
+            var serviceType = typeof(T);
+            var serviceInstance = Activator.CreateInstance(serviceType, new object[] { dbConnStr });
 
             //注入Redis缓存类DataCache
             var redisConnstr = Config.Config.Options.RedisConnStr;
             IDataCache redisCache = new DataCache(redisConnstr, 0);
             var cacheProp = typeof(T).GetProperty("Cache");
-            cacheProp.SetValue(serviceInstance, redisCache);
+            cacheProp?.SetValue(serviceInstance, redisCache);
             return (T)serviceInstance;
         }
 

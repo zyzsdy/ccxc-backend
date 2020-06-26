@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -45,10 +46,12 @@ namespace Ccxc.Core.Utils
         {
             if (timeoutMilliseconds > 0)
             {
+                Debug.Assert(RedisDb != null, nameof(RedisDb) + " != null");
                 await RedisDb?.StringSetAsync(key, value, TimeSpan.FromMilliseconds(timeoutMilliseconds));
             }
             else
             {
+                Debug.Assert(RedisDb != null, nameof(RedisDb) + " != null");
                 await RedisDb?.StringSetAsync(key, value);
             }
         }

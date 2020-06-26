@@ -13,21 +13,19 @@ namespace ccxc_backend.Controllers
 
         public static void Regist()
         {
-            ControllerRegister r = new ControllerRegister();
+            var r = new ControllerRegister();
             r.Compose();
-            if (r.Controllers != null)
+            if (r.Controllers == null) return;
+            foreach (var controller in r.Controllers)
             {
-                foreach (var controller in r.Controllers)
-                {
-                    Server.RegisterController(controller);
-                }
+                Server.RegisterController(controller);
             }
         }
 
         private void Compose()
         {
             var catalog = new AssemblyCatalog(Assembly.GetExecutingAssembly());
-            CompositionContainer container = new CompositionContainer(catalog);
+            var container = new CompositionContainer(catalog);
             container.ComposeParts(this);
         }
     }

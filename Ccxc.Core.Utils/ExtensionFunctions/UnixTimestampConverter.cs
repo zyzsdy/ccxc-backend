@@ -12,13 +12,14 @@ namespace Ccxc.Core.Utils.ExtensionFunctions
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            long objectValue = (long)reader.Value;
+            if (reader.Value == null) return UnixTimestamp.FromTimestamp(0);
+            var objectValue = (long)reader.Value;
             return UnixTimestamp.FromTimestamp(objectValue);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            DateTime dt = (DateTime)value;
+            var dt = (DateTime)value;
             writer.WriteValue(UnixTimestamp.GetTimestamp(dt));
         }
     }

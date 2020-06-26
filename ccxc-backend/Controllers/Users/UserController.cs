@@ -78,7 +78,7 @@ namespace ccxc_backend.Controllers.Users
             loginLog.userid = requestJson.userid;
 
             //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
+            if (!Validation.Valid(requestJson, out var reason))
             {
                 loginLog.status = 2;
                 await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
@@ -136,14 +136,12 @@ namespace ccxc_backend.Controllers.Users
             foreach (var session in sessions)
             {
                 var oldSession = await cache.Get<UserSession>(session);
-                if (oldSession != null && oldSession.uid == user.uid)
-                {
-                    oldSession.is_active = 0;
-                    oldSession.last_update = DateTime.Now;
-                    oldSession.inactive_message = $"您的帐号已于 {DateTime.Now:yyyy-MM-dd HH:mm:ss} 在其他设备登录。";
+                if (oldSession == null || oldSession.uid != user.uid) continue;
+                oldSession.is_active = 0;
+                oldSession.last_update = DateTime.Now;
+                oldSession.inactive_message = $"您的帐号已于 {DateTime.Now:yyyy-MM-dd HH:mm:ss} 在其他设备登录。";
 
-                    await cache.Put(session, oldSession, Config.Config.Options.UserSessionTimeout * 1000);
-                }
+                await cache.Put(session, oldSession, Config.Config.Options.UserSessionTimeout * 1000);
             }
 
             //创建新Session
@@ -249,7 +247,7 @@ namespace ccxc_backend.Controllers.Users
             var requestJson = request.Json<EditUserRequest>();
 
             //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
+            if (!Validation.Valid(requestJson, out var reason))
             {
                 await response.BadRequest(reason);
                 return;
@@ -266,7 +264,7 @@ namespace ccxc_backend.Controllers.Users
                 return;
             }
 
-            bool loginInfoUpdate = false;
+            var loginInfoUpdate = false;
             //判断是否重复
             if (user.username != requestJson.username)
             {

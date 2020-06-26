@@ -23,7 +23,7 @@ namespace ccxc_backend.Controllers.Groups
             var requestJson = request.Json<CreateGroupRequest>();
 
             //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
+            if (!Validation.Valid(requestJson, out var reason))
             {
                 await response.BadRequest(reason);
                 return;
@@ -110,7 +110,7 @@ namespace ccxc_backend.Controllers.Groups
             var requestJson = request.Json<CreateGroupRequest>();
 
             //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
+            if (!Validation.Valid(requestJson, out var reason))
             {
                 await response.BadRequest(reason);
                 return;
@@ -322,7 +322,7 @@ namespace ccxc_backend.Controllers.Groups
             var requestJson = request.Json<RemoveGroupRequest>();
 
             //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
+            if (!Validation.Valid(requestJson, out var reason))
             {
                 await response.BadRequest(reason);
                 return;

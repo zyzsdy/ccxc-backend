@@ -71,7 +71,7 @@ namespace ccxc_backend.Controllers.Admin
                 var filePath = Path.Combine(fileDir, fileName);
 
 
-                using var fileStream = new FileStream(filePath, FileMode.Create);
+                await using var fileStream = new FileStream(filePath, FileMode.Create);
                 await file.CopyToAsync(fileStream);
 
                 await response.JsonResponse(200, new ImageResponse

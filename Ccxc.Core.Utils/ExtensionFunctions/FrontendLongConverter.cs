@@ -8,7 +8,7 @@ namespace Ccxc.Core.Utils.ExtensionFunctions
         public override bool CanConvert(Type objectType)
         {
             var nullType = Nullable.GetUnderlyingType(objectType);
-            var unboxType = nullType != null ? nullType : objectType;
+            var unboxType = nullType ?? objectType;
 
             switch (unboxType.Name)
             {
@@ -22,22 +22,22 @@ namespace Ccxc.Core.Utils.ExtensionFunctions
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            string number = reader.Value as string;
+            var number = reader.Value as string;
             if (objectType == typeof(ulong))
             {
-                ulong.TryParse(number, out ulong res);
+                ulong.TryParse(number, out var res);
                 return res;
             }
             else
             {
-                long.TryParse(number, out long res);
+                long.TryParse(number, out var res);
                 return res;
             }
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            long v = value is ulong ? (long)(ulong)value : (long)value;
+            var v = value is ulong uv ? (long)uv : (long)value;
             writer.WriteValue(v.ToString());
         }
     }

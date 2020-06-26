@@ -11,7 +11,7 @@ namespace Ccxc.Core.HttpServer
     public class Request
     {
         public HttpRequest RawRequest { get; private set; }
-        private dynamic pathParam;
+        private readonly dynamic pathParam;
         public dynamic Params => pathParam ?? new ExpandoObject();
 
         private dynamic query;

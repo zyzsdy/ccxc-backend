@@ -9,13 +9,7 @@ namespace Ccxc.Core.DbOrm
 {
     public abstract class MysqlClient<T> where T : class, new()
     {
-        public SqlBaseClient Db
-        {
-            get
-            {
-                return new SqlBaseClient(ConnStr, DbType.MySql, IfInitKeyFromAttribute);
-            }
-        }
+        public SqlBaseClient Db => new SqlBaseClient(ConnStr, DbType.MySql, IfInitKeyFromAttribute);
 
         public IDataCache Cache { get; set; } = null;
 
@@ -43,7 +37,7 @@ namespace Ccxc.Core.DbOrm
             var dbTableAttrs = typeof(T).GetCustomAttributes().Where(attr => attr is DbTableAttribute);
             foreach (var attr in dbTableAttrs)
             {
-                var tempName = (attr as DbTableAttribute).TableName;
+                var tempName = (attr as DbTableAttribute)?.TableName;
                 if (!string.IsNullOrEmpty(tempName))
                 {
                     tableName = tempName;
@@ -58,24 +52,17 @@ namespace Ccxc.Core.DbOrm
         {
             return string.Join("_", typeof(T).GetProperties().Where(prop =>
             {
-                var dbattr = prop.GetCustomAttributes().Where(attr => attr is DbColumnAttribute).FirstOrDefault();
-                if (dbattr != null)
-                {
-                    return (dbattr as DbColumnAttribute).IsPrimaryKey;
-                }
-                else
-                {
-                    return false;
-                }
+                var dbattr = prop.GetCustomAttributes().FirstOrDefault(attr => attr is DbColumnAttribute);
+                return dbattr != null && ((DbColumnAttribute) dbattr).IsPrimaryKey;
             }).Select(prop =>
             {
                 var name = prop.Name;
-                var dbattr = prop.GetCustomAttributes().Where(attr => attr is DbColumnAttribute).FirstOrDefault();
-                if (dbattr != null && !string.IsNullOrEmpty((dbattr as DbColumnAttribute).ColumnName))
+                var dbattr = prop.GetCustomAttributes().FirstOrDefault(attr => attr is DbColumnAttribute);
+                if (dbattr != null && !string.IsNullOrEmpty((dbattr as DbColumnAttribute)?.ColumnName))
                 {
                     name = (dbattr as DbColumnAttribute).ColumnName;
                 }
-                return $"{name}_{prop.GetValue(obj).ToString()}";
+                return $"{name}_{prop.GetValue(obj)}";
             }));
         }
 
@@ -83,24 +70,17 @@ namespace Ccxc.Core.DbOrm
         {
             return string.Join(" AND ", typeof(T).GetProperties().Where(prop =>
             {
-                var dbattr = prop.GetCustomAttributes().Where(attr => attr is DbColumnAttribute).FirstOrDefault();
-                if (dbattr != null)
-                {
-                    return (dbattr as DbColumnAttribute).IsPrimaryKey;
-                }
-                else
-                {
-                    return false;
-                }
+                var dbattr = prop.GetCustomAttributes().FirstOrDefault(attr => attr is DbColumnAttribute);
+                return dbattr != null && (dbattr as DbColumnAttribute).IsPrimaryKey;
             }).Select(prop =>
             {
                 var name = prop.Name;
-                var dbattr = prop.GetCustomAttributes().Where(attr => attr is DbColumnAttribute).FirstOrDefault();
-                if (dbattr != null && !string.IsNullOrEmpty((dbattr as DbColumnAttribute).ColumnName))
+                var dbattr = prop.GetCustomAttributes().FirstOrDefault(attr => attr is DbColumnAttribute);
+                if (dbattr != null && !string.IsNullOrEmpty((dbattr as DbColumnAttribute)?.ColumnName))
                 {
                     name = (dbattr as DbColumnAttribute).ColumnName;
                 }
-                return $"`{name}` = '{prop.GetValue(obj).ToString()}'";
+                return $"`{name}` = '{prop.GetValue(obj)}'";
             }));
         }
 
@@ -137,7 +117,7 @@ namespace Ccxc.Core.DbOrm
                     hashvalues.Add(pk, i);
                 }
 
-                await Cache?.PutAll(key, hashvalues, 86400000);
+                if (Cache != null) await Cache.PutAll(key, hashvalues, 86400000);
             }
 
             return result;

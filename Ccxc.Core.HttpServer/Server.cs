@@ -157,7 +157,7 @@ namespace Ccxc.Core.HttpServer
 
                             //寻找控制器缓存
                             var cacheKey = $"R$$///{method}$===${path}";
-                            handlerCache.TryGetValue(cacheKey, out HttpHandler handler);
+                            handlerCache.TryGetValue(cacheKey, out var handler);
                             if (handler == null)
                             {
                                 //无缓存，从List中寻找第一个匹配。
@@ -191,10 +191,8 @@ namespace Ccxc.Core.HttpServer
                                     {
                                         return Response.SimpleResponse(response, 500, "Internal Server Error: " + e.ToString());
                                     }
-                                    else
-                                    {
-                                        return Response.SimpleResponse(response, 500, "Internal Server Error.");
-                                    }
+
+                                    return Response.SimpleResponse(response, 500, "Internal Server Error.");
                                 }
                             }
 
@@ -216,7 +214,7 @@ namespace Ccxc.Core.HttpServer
         /// <returns></returns>
         public async Task Stop()
         {
-            await Host?.StopAsync();
+            if (Host != null) await Host?.StopAsync();
         }
 
         /// <summary>
@@ -255,12 +253,10 @@ namespace Ccxc.Core.HttpServer
                 {
                     throw new HttpHandlerRegisterException("HTTP Handler 控制器方法必须含有两个参数 Request, Response");
                 }
-                else
+
+                if (paraInfos[0].ParameterType != typeof(Request) || paraInfos[1].ParameterType != typeof(Response))
                 {
-                    if (paraInfos[0].ParameterType != typeof(Request) || paraInfos[1].ParameterType != typeof(Response))
-                    {
-                        throw new HttpHandlerRegisterException("HTTP Handler 控制器方法必须含有两个参数 Request, Response");
-                    }
+                    throw new HttpHandlerRegisterException("HTTP Handler 控制器方法必须含有两个参数 Request, Response");
                 }
 
                 if (handler.ReturnType != typeof(Task))
@@ -278,7 +274,7 @@ namespace Ccxc.Core.HttpServer
                         Path = httpAttr.Path,
                         Handler = (request, response) =>
                         {
-                            object[] parameters = new object[] { request, response };
+                            var parameters = new object[] { request, response };
                             var controller = Activator.CreateInstance(TYPE);
                             var result = handler.Invoke(controller, parameters);
                             return result as Task;
@@ -312,12 +308,10 @@ namespace Ccxc.Core.HttpServer
             {
                 throw new HttpHandlerRegisterException($"{handler.Method} {handler.Path} 无法重复被绑定。");
             }
-            else
+
+            lock (_lockHandlers)
             {
-                lock (_lockHandlers)
-                {
-                    handlerList.Add(handler);
-                }
+                handlerList.Add(handler);
             }
         }
 

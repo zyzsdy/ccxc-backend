@@ -20,24 +20,19 @@ namespace Ccxc.Core.HttpServer
             if (reqPathNodes.Length != handlerPathNodes.Length) return false;
 
             var pathParamsDict = new Dictionary<string, string>();
-            for (int i = 0; i < reqPathNodes.Length; i++)
+            for (var i = 0; i < reqPathNodes.Length; i++)
             {
                 var req = reqPathNodes[i];
                 var pattern = handlerPathNodes[i];
 
                 if (req == pattern) continue;
 
-                if (pattern.StartsWith(":"))
+                if (!pattern.StartsWith(":")) return false;
+                var paramKey = pattern.Substring(1);
+                if (!pathParamsDict.ContainsKey(paramKey))
                 {
-                    var paramKey = pattern.Substring(1);
-                    if (!pathParamsDict.ContainsKey(paramKey))
-                    {
-                        pathParamsDict.Add(paramKey, req);
-                    }
-                    continue;
+                    pathParamsDict.Add(paramKey, req);
                 }
-
-                return false;
             }
 
             pathParams = pathParamsDict.ToDynamic();

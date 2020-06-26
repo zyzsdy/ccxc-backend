@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Xml;
 
@@ -16,7 +17,7 @@ namespace Ccxc.Core.Utils
         /// <returns></returns>
         public static T GetOption<T>(string configPath) where T : class, new()
         {
-            var configDirectory = Path.GetDirectoryName(configPath);
+            var configDirectory = Path.GetDirectoryName(configPath) ?? "Config";
             if (!Directory.Exists(configDirectory))
             {
                 Logger.Info("Config目录不存在，建立该目录");
@@ -62,21 +63,19 @@ namespace Ccxc.Core.Utils
                 var info = Attribute.GetCustomAttributes(props);
                 foreach (var attr in info)
                 {
-                    if (attr is OptionDescriptionAttribute)
-                    {
-                        var name = props.Name;
-                        var value = props.GetValue(defaultOption).ToString();
-                        var desc = (attr as OptionDescriptionAttribute).Desc;
+                    if (!(attr is OptionDescriptionAttribute attribute)) continue;
+                    var name = props.Name;
+                    var value = props.GetValue(defaultOption).ToString();
+                    var desc = attribute.Desc;
 
-                        var configOption = configXml.CreateElement("Option");
-                        configOption.SetAttribute("Name", name);
-                        configOption.SetAttribute("Value", value);
+                    var configOption = configXml.CreateElement("Option");
+                    configOption.SetAttribute("Name", name);
+                    configOption.SetAttribute("Value", value);
 
-                        var configComment = configXml.CreateComment(desc);
+                    var configComment = configXml.CreateComment(desc);
 
-                        configRoot.AppendChild(configComment);
-                        configRoot.AppendChild(configOption);
-                    }
+                    configRoot.AppendChild(configComment);
+                    configRoot.AppendChild(configOption);
                 }
             }
 
@@ -104,6 +103,7 @@ namespace Ccxc.Core.Utils
                         if (existedConfig != null)
                         {
                             string ecValue = null;
+                            Debug.Assert(existedConfig.Attributes != null, "existedConfig.Attributes != null");
                             foreach (XmlAttribute ecAtt in existedConfig.Attributes)
                             {
                                 if (ecAtt.Name == "Value")

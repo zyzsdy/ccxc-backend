@@ -30,8 +30,8 @@ namespace Ccxc.Core.HttpServer
 
         public Task JsonResponse(int statusCode, object jsonObject)
         {
-            var JsonString = JsonConvert.SerializeObject(jsonObject, new FrontendLongConverter());
-            return SimpleResponse(RawResponse, statusCode, JsonString, "application/json");
+            var jsonString = JsonConvert.SerializeObject(jsonObject, new FrontendLongConverter());
+            return SimpleResponse(RawResponse, statusCode, jsonString, "application/json");
         }
 
         public Task StringResponse(int statusCode, string responseContent, string responseType = "text/html")

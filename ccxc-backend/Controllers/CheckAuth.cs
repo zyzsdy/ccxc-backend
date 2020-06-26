@@ -30,7 +30,7 @@ namespace ccxc_backend.Controllers
         /// <param name="authLevel"></param>
         /// <param name="onlyInGaming"></param>
         /// <returns></returns>
-        public async static Task<UserSession> Check(Request request, Response response, AuthLevel authLevel, bool onlyInGaming = false)
+        public static async Task<UserSession> Check(Request request, Response response, AuthLevel authLevel, bool onlyInGaming = false)
         {
             IDictionary<string, object> headers = request.Header;
 
@@ -49,9 +49,9 @@ namespace ccxc_backend.Controllers
             }
 
             var xAuthToken = headers["x-auth-token"].ToString();
-            var xAuth = xAuthToken.Split(" ").Select(it => it.Trim()).ToList();
+            var xAuth = xAuthToken?.Split(" ").Select(it => it.Trim()).ToList();
 
-            if(xAuth.Count != 3)
+            if(xAuth == null || xAuth.Count != 3)
             {
                 await response.BadRequest("请求格式错误：X-Auth-Token 结构不正确。");
                 return null;
@@ -67,7 +67,7 @@ namespace ccxc_backend.Controllers
             var sign = xAuth[2];
 
             //ts判断，客户端与前端钟差不能大于5min
-            long.TryParse(ts, out long tsNum);
+            long.TryParse(ts, out var tsNum);
             var signedTime = UnixTimestamp.FromTimestamp(tsNum);
             var diff = Math.Abs((DateTime.Now - signedTime).TotalMinutes);
             if(diff > 5)
@@ -109,7 +109,8 @@ namespace ccxc_backend.Controllers
                         await response.BadRequest("未到开赛时间");
                         return null;
                     }
-                    else if(now >= endTime)
+
+                    if(now >= endTime)
                     {
                         await response.BadRequest("比赛时间已过，感谢您的参与！");
                         return null;
