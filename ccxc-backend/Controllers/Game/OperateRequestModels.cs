@@ -8,4 +8,10 @@ namespace ccxc_backend.Controllers.Game
     {
         public int unlock_puzzle_group_id { get; set; }
     }
+
+    public class CheckAnswerRequest
+    {
+        public int pid { get; set; }
+        public string answer { get; set; }
+    }
 }
