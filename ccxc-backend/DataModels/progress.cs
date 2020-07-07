@@ -50,6 +50,11 @@ namespace ccxc_backend.DataModels
         public List<int> FinishedPuzzles { get; set; } = new List<int>();
 
         /// <summary>
+        /// 已开放的隐藏题目
+        /// </summary>
+        public List<int> OpenedHidePuzzles { get; set; } = new List<int>();
+
+        /// <summary>
         /// 是否可以选择开放下一个组
         /// </summary>
         public bool IsOpenNextGroup { get; set; } = false;
