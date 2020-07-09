@@ -29,11 +29,12 @@ namespace ccxc_backend.DataModels
         public string html { get; set; }
 
         /// <summary>
-        /// 答案类型（0-小题 1-组/区域Meta 2-FinalMeta 3-不计分题目）
+        /// 答案类型（0-小题 1-组/区域Meta 2-PreFinalMeta 3-FinalMeta 4-不计分题目）
         /// 1- 完成该区域，开放下一区域选择权
-        /// 2- 完赛，记录最终成绩
+        /// 2- 开放FinalMeta
+        /// 3- 完赛，记录最终成绩
         /// </summary>
-        [DbColumn(ColumnDescription = "答案类型（0-小题 1-组/区域Meta 2-FinalMeta 3-不计分题目）")]
+        [DbColumn(ColumnDescription = "答案类型（0-小题 1-组/区域Meta 2-PreFinalMeta 3-FinalMeta 4-不计分题目）")]
         public byte answer_type { get; set; }
 
         [DbColumn(ColumnDescription = "答案")]

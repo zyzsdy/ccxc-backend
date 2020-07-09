@@ -49,8 +49,8 @@ namespace ccxc_backend.Config
         [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-01 20:00:00 +0800 aka. 1596283200000")]
         public long RegDeadline { get; set; } = 1596283200000;
 
-        [OptionDescription("至少完成多少个区域以后才可见FinalMeta")]
-        public int ShowFinalGroups { get; set; } = 3;
+        [OptionDescription("至少完成多少个区域以后才可见PreFinalMeta")]
+        public int ShowFinalGroups { get; set; } = 4;
 
         public static Config Options { get; set; } = SystemOption.GetOption<Config>("Config/CcxcConfig.xml");
     }

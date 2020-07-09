@@ -37,7 +37,7 @@ namespace ccxc_backend.DataModels
         /// <summary>
         /// 当前启用中的题目组
         /// </summary>
-        public int NowOpenPuzzleGroupId { get; set; } = 0;
+        public List<int> NowOpenPuzzleGroups { get; set; } = new List<int>();
 
         /// <summary>
         /// 已完成的题目组
@@ -58,6 +58,11 @@ namespace ccxc_backend.DataModels
         /// 是否可以选择开放下一个组
         /// </summary>
         public bool IsOpenNextGroup { get; set; } = false;
+
+        /// <summary>
+        /// 是否开放FinalMeta准入
+        /// </summary>
+        public bool IsOpenPreFinal { get; set; } = false;
 
         /// <summary>
         /// 是否开放FinalMeta

@@ -33,7 +33,8 @@ namespace ccxc_backend.Controllers.Admin
             var newPg = new puzzle_group
             {
                 pg_name = requestJson.pg_name,
-                pg_desc = requestJson.pg_desc
+                pg_desc = requestJson.pg_desc,
+                is_hide = (byte)(requestJson.is_hide == 1 ? 1 : 0)
             };
 
             await pgDb.SimpleDb.AsInsertable(newPg).ExecuteCommandAsync();
@@ -85,7 +86,8 @@ namespace ccxc_backend.Controllers.Admin
             {
                 pgid = requestJson.pgid,
                 pg_name = requestJson.pg_name,
-                pg_desc = requestJson.pg_desc
+                pg_desc = requestJson.pg_desc,
+                is_hide = (byte)(requestJson.is_hide == 1 ? 1 : 0)
             };
 
             var pgDb = DbFactory.Get<PuzzleGroup>();

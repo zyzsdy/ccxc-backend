@@ -20,7 +20,7 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "GID", IndexGroupNameList = new string[] { "index_gid_pid" })]
         public int gid { get; set; }
 
-        [DbColumn(ColumnDescription = "题目ID")]
+        [DbColumn(ColumnDescription = "题目ID", IndexGroupNameList = new string[] { "index_gid_pid" })]
         public int pid { get; set; }
 
         [DbColumn(ColumnDescription = "提交答案")]

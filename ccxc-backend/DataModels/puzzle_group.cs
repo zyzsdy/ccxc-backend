@@ -16,7 +16,10 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "题目组描述", ColumnDataType = "TEXT", IsNullable = true)]
         public string pg_desc { get; set; }
 
-        [DbColumn(ColumnDescription = "是否为隐藏区域（0-不是 1-是）", DefaultValue = "0")]
+        /// <summary>
+        /// 是否为隐藏区域（0-不是 1-是）
+        /// </summary>
+        [DbColumn(DefaultValue = "0")]
         public byte is_hide { get; set; } = 0;
     }
 

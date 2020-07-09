@@ -7,10 +7,11 @@ namespace ccxc_backend.Controllers.Game
 {
     public class GetPuzzleGroupResponse : BasicResponse
     {
-        public int now_open_puzzle_group_id { get; set; }
-
         //是否可以选择开放下一个组（0-无法开放 1-可以开放）
         public int is_open_next_group { get; set; }
+
+        //是否显示FinalMeta准入题目（0-不显示 1-显示）
+        public int is_open_pre_final { get; set; }
 
         //是否显示FinalMeta（0-不显示 1-显示）
         public int is_open_final_meta { get; set; }
@@ -29,6 +30,9 @@ namespace ccxc_backend.Controllers.Game
 
         //是否完成本题目组（0-未完成 1-完成）
         public int is_finish { get; set; }
+
+        //本题目组是否已开放（0-未开放 1-开放）
+        public int is_open { get; set; }
     }
 
     public class GetPuzzleListRequest

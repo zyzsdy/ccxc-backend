@@ -11,6 +11,7 @@ namespace ccxc_backend.Controllers.Admin
         [Required(Message = "分区名称不能为空")]
         public string pg_name { get; set; }
         public string pg_desc { get; set; }
+        public int is_hide { get; set; }
     }
     
     public class DeletePuzzleGroupRequest
@@ -25,6 +26,7 @@ namespace ccxc_backend.Controllers.Admin
         [Required(Message = "分区名称不能为空")]
         public string pg_name { get; set; }
         public string pg_desc { get; set; }
+        public int is_hide { get; set; }
     }
 
     public class GetPuzzleGroupResponse : BasicResponse

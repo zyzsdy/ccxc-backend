@@ -53,7 +53,7 @@ namespace ccxc_backend.Controllers.Game
                 {
                     data = new SaveData
                     {
-                        NowOpenPuzzleGroupId = firstPuzzleGroup.pgid
+                        NowOpenPuzzleGroups = new List<int>(){ firstPuzzleGroup.pgid }
                     },
                     score = 0,
                     update_time = DateTime.Now,
@@ -105,8 +105,8 @@ namespace ccxc_backend.Controllers.Game
 
             var res = new GetPuzzleGroupResponse
             {
-                now_open_puzzle_group_id = progressData.NowOpenPuzzleGroupId,
                 is_open_next_group = progressData.IsOpenNextGroup ? 1 : 0,
+                is_open_pre_final = progressData.IsOpenPreFinal ? 1 : 0,
                 is_open_final_meta = progressData.IsOpenFinalMeta ? 1 : 0
             };
 
@@ -117,11 +117,14 @@ namespace ccxc_backend.Controllers.Game
             if(progressData.FinishedGroups.Count <= 0)
             {
                 //第一区域，只能看到当前一个区域内容
-                var firstPuzzleGroup = puzzleGroupList.Where(it => it.is_hide == 0).OrderBy(it => it.pgid).FirstOrDefault();
-                res.puzzle_groups = new List<PuzzleGroupView>();
-                if (firstPuzzleGroup != null)
+                var firstPuzzleGroup = puzzleGroupList.Where(it => it.is_hide == 0 && progressData.NowOpenPuzzleGroups.Contains(it.pgid)).OrderBy(it => it.pgid);
+                if (firstPuzzleGroup != null && firstPuzzleGroup.Count() > 0)
                 {
-                    res.puzzle_groups.Add(new PuzzleGroupView(firstPuzzleGroup));
+                    res.puzzle_groups = firstPuzzleGroup.Select(it => new PuzzleGroupView(it)
+                    {
+                        is_finish = 0,
+                        is_open = 1
+                    }).ToList();
                 }
             }
             else
@@ -129,7 +132,8 @@ namespace ccxc_backend.Controllers.Game
                 //可见所有未隐藏组
                 res.puzzle_groups = puzzleGroupList.Where(it => it.is_hide == 0).OrderBy(it => it.pgid).Select(it => new PuzzleGroupView(it)
                 {
-                    is_finish = progressData.FinishedGroups.Contains(it.pgid) ? 1 : 0
+                    is_finish = progressData.FinishedGroups.Contains(it.pgid) ? 1 : 0,
+                    is_open = progressData.NowOpenPuzzleGroups.Contains(it.pgid) ? 1 : 0
                 }).ToList();
             }
 
@@ -181,7 +185,7 @@ namespace ccxc_backend.Controllers.Game
                 return;
             }
 
-            if (requestJson.pgid != progressData.NowOpenPuzzleGroupId && !progressData.FinishedGroups.Contains(requestJson.pgid))
+            if (!progressData.NowOpenPuzzleGroups.Contains(requestJson.pgid))
             {
                 await response.Unauthorized("不能访问您未打开的区域; Eno=0");
                 return;
@@ -205,6 +209,64 @@ namespace ccxc_backend.Controllers.Game
             {
                 status = 1,
                 puzzle_group_info = puzzleGroupItem,
+                puzzle_list = puzzleOverviewList
+            });
+        }
+
+        [HttpHandler("POST", "/play/get-pre-final-puzzle-list")]
+        public async Task GetPreFinalPuzzleList(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            if (!progressData.IsOpenPreFinal)
+            {
+                await response.Unauthorized("不能访问您未打开的区域; Eno=1");
+                return;
+            }
+
+            //取得题目详情
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var puzzleList = (await puzzleDb.SelectAllFromCache()).Where(it => it.answer_type == 2).OrderBy(it => it.pid); //answer_type == 2 PreFinalMeta
+
+            var puzzleOverviewList = puzzleList.Select(it => new PuzzleOverview(it)
+            {
+                is_finish = progressData.FinishedPuzzles.Contains(it.pgid) ? 1 : 0
+            }).ToList();
+
+            //返回
+            await response.JsonResponse(200, new GetFinalMetaPuzzleListResponse
+            {
+                status = 1,
                 puzzle_list = puzzleOverviewList
             });
         }
@@ -252,7 +314,7 @@ namespace ccxc_backend.Controllers.Game
 
             //取得题目详情
             var puzzleDb = DbFactory.Get<Puzzle>();
-            var puzzleList = (await puzzleDb.SelectAllFromCache()).Where(it => it.answer_type == 2).OrderBy(it => it.pid); //answer_type == 2 FinalMeta
+            var puzzleList = (await puzzleDb.SelectAllFromCache()).Where(it => it.answer_type == 3).OrderBy(it => it.pid); //answer_type == 3 FinalMeta
 
             var puzzleOverviewList = puzzleList.Select(it => new PuzzleOverview(it)
             {
@@ -329,6 +391,14 @@ namespace ccxc_backend.Controllers.Game
             //  FinalMeta需存档可见
             if (puzzleItem.answer_type == 2)
             {
+                if (!progressData.IsOpenPreFinal)
+                {
+                    await response.Unauthorized("不能访问您未打开的区域");
+                    return;
+                }
+            }
+            else if (puzzleItem.answer_type == 3)
+            {
                 if (!progressData.IsOpenFinalMeta)
                 {
                     await response.Unauthorized("不能访问您未打开的区域");
@@ -357,7 +427,7 @@ namespace ccxc_backend.Controllers.Game
                 }
             }
             //  其他题目需当前题目组已完成或开放
-            if (progressData.NowOpenPuzzleGroupId != puzzleItem.pgid && !progressData.FinishedGroups.Contains(puzzleItem.pgid))
+            if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid))
             {
                 await response.Unauthorized("不能访问您未打开的区域");
                 return;
