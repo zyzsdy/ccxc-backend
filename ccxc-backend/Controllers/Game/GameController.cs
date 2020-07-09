@@ -51,6 +51,7 @@ namespace ccxc_backend.Controllers.Game
 
                 var progressItem = new progress
                 {
+                    gid = gid,
                     data = new SaveData
                     {
                         NowOpenPuzzleGroups = new List<int>(){ firstPuzzleGroup.pgid }

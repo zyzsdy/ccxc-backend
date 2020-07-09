@@ -43,11 +43,11 @@ namespace ccxc_backend.Config
         [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2020-08-07 20:00:00 +0800 aka. 1596801600000")]
         public long StartTime { get; set; } = 1596801600000;
 
-        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-17 20:00:00 +0800 aka. 1597665600000")]
-        public long EndTime { get; set; } = 1597665600000;
+        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-21 23:59:59 +0800 aka. 1598025599000")]
+        public long EndTime { get; set; } = 1598025599000;
 
-        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-01 20:00:00 +0800 aka. 1596283200000")]
-        public long RegDeadline { get; set; } = 1596283200000;
+        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-06 20:00:00 +0800 aka. 1596715200000")]
+        public long RegDeadline { get; set; } = 1596715200000;
 
         [OptionDescription("至少完成多少个区域以后才可见PreFinalMeta")]
         public int ShowFinalGroups { get; set; } = 4;
