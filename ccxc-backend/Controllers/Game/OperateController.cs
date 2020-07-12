@@ -228,9 +228,8 @@ namespace ccxc_backend.Controllers.Game
             }
 
             //判断答案是否正确
-            if (puzzleItem.answer != requestJson.answer)
+            if (!string.Equals(puzzleItem.answer, requestJson.answer, StringComparison.CurrentCultureIgnoreCase))
             {
-                var remainTime = Config.Config.Options.CooldownTime - coolTime;
                 answerLog.status = 2;
                 await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
 
@@ -259,29 +258,49 @@ namespace ccxc_backend.Controllers.Game
             }
 
             //检查是否可以打开新区域
+            var successMessage = "OK";
             var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
             var nowPuzzleGroup = (await puzzleGroupDb.SelectAllFromCache()).Where(it => it.pgid == puzzleItem.pgid).First();
-            if(nowPuzzleGroup != null && nowPuzzleGroup.is_hide == 0) //只有非隐藏分区才可打开新区域
+            if (nowPuzzleGroup != null && nowPuzzleGroup.is_hide == 0) //只有非隐藏分区才可打开新区域
             {
-                if (progressData.NowOpenPuzzleGroups.Count <= 1) //第一个分区，需完成分区meta
+                if (!progressData.UsedOpenGroups.Contains(puzzleItem.pgid)) //只有未开放过新区域的分组可以打开新区域
                 {
-                    if (puzzleItem.answer_type == 1)
+                    if (progressData.NowOpenPuzzleGroups.Count <= 1) //第一个分区，需完成分区meta
                     {
-                        progress.data.IsOpenNextGroup = true;
+                        if (puzzleItem.answer_type == 1)
+                        {
+                            successMessage = "成功解答出了Meta，好像有其他的区域开放了。";
+                            progress.data.IsOpenNextGroup = true;
+                            progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
+                        }
                     }
-                }
-                else //否则仅需完成本区域内半数题目（向上取整）
-                {
-                    var thisGroupPuzzleList = puzzleList.Where(it => it.pgid == puzzleItem.pgid);
-                    var totalPuzzle = thisGroupPuzzleList.Count();
-                    var finishedPuzzle = thisGroupPuzzleList.Where(it => progress.data.FinishedPuzzles.Contains(it.pid)).Count();
+                    else //否则仅需完成本区域内半数题目（向上取整）
+                    {
+                        if (puzzleItem.answer_type == 1)
+                        {
+                            successMessage = "成功解答出了Meta，可以开放下一个区域了。";
+                            progress.data.IsOpenNextGroup = true;
+                            progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
+                        }
+                        else
+                        {
+                            var thisGroupPuzzleList = puzzleList.Where(it => it.pgid == puzzleItem.pgid).ToList();
+                            var totalPuzzle = thisGroupPuzzleList.Count;
+                            var finishedPuzzle = thisGroupPuzzleList.Where(it => progress.data.FinishedPuzzles.Contains(it.pid)).Count();
 
-                    var halfNumber = 0.5 * totalPuzzle;
-                    if (finishedPuzzle > halfNumber)
-                    {
-                        progress.data.IsOpenNextGroup = true;
+                            var halfNumber = 0.5 * totalPuzzle;
+                            if (finishedPuzzle > halfNumber)
+                            {
+                                successMessage = "在这个分区已经解答了大多数问题，可以去下个区域看看了。";
+                                progress.data.IsOpenNextGroup = true;
+                                progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
+                            }
+                        }
                     }
                 }
+
+
+                
             }
 
             //检查是否符合开放FinalMeta条件
@@ -296,7 +315,7 @@ namespace ccxc_backend.Controllers.Game
 
             //计算分数
             //时间分数为 1000 - （开赛以来的总时长 + 罚时）
-            var timeBaseScore = 1000d;
+            const double timeBaseScore = 1000d;
             var timeSpanHours = (DateTime.Now - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours + progress.penalty;
             var timeScore = timeBaseScore - timeSpanHours;
 
@@ -345,7 +364,8 @@ namespace ccxc_backend.Controllers.Game
             await response.JsonResponse(200, new AnswerResponse
             {
                 status = 1,
-                answer_status = 1
+                answer_status = 1,
+                message = successMessage
             });
         }
     }

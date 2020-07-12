@@ -118,8 +118,11 @@ namespace ccxc_backend.Controllers.Game
             if(progressData.FinishedGroups.Count <= 0)
             {
                 //第一区域，只能看到当前一个区域内容
-                var firstPuzzleGroup = puzzleGroupList.Where(it => it.is_hide == 0 && progressData.NowOpenPuzzleGroups.Contains(it.pgid)).OrderBy(it => it.pgid);
-                if (firstPuzzleGroup != null && firstPuzzleGroup.Count() > 0)
+                var firstPuzzleGroup = puzzleGroupList
+                    .Where(it => it.is_hide == 0 && progressData.NowOpenPuzzleGroups.Contains(it.pgid))
+                    .OrderBy(it => it.pgid)
+                    .ToList();
+                if (firstPuzzleGroup.Count > 0)
                 {
                     res.puzzle_groups = firstPuzzleGroup.Select(it => new PuzzleGroupView(it)
                     {
