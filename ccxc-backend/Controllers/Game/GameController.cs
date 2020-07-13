@@ -205,7 +205,7 @@ namespace ccxc_backend.Controllers.Game
 
             var puzzleOverviewList = puzzleList.Select(it => new PuzzleOverview(it)
             {
-                is_finish = progressData.FinishedPuzzles.Contains(it.pgid) ? 1 : 0
+                is_finish = progressData.FinishedPuzzles.Contains(it.pid) ? 1 : 0
             }).ToList();
 
             //返回

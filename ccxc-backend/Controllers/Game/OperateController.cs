@@ -201,7 +201,7 @@ namespace ccxc_backend.Controllers.Game
 
             //取得最后一次错误答题记录
             var lastWrongTime = DateTime.MinValue;
-            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1)
+            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1 && it.status != 3)
                 .OrderBy(it => it.create_time, OrderByType.Desc).FirstAsync();
 
             if(lastWrongAnswer != null)
@@ -288,8 +288,8 @@ namespace ccxc_backend.Controllers.Game
                             var totalPuzzle = thisGroupPuzzleList.Count;
                             var finishedPuzzle = thisGroupPuzzleList.Where(it => progress.data.FinishedPuzzles.Contains(it.pid)).Count();
 
-                            var halfNumber = 0.5 * totalPuzzle;
-                            if (finishedPuzzle > halfNumber)
+                            var halfNumber = totalPuzzle / 2;
+                            if (finishedPuzzle >= halfNumber)
                             {
                                 successMessage = "在这个分区已经解答了大多数问题，可以去下个区域看看了。";
                                 progress.data.IsOpenNextGroup = true;
