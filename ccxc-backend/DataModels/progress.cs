@@ -37,27 +37,27 @@ namespace ccxc_backend.DataModels
         /// <summary>
         /// 当前启用中的题目组
         /// </summary>
-        public List<int> NowOpenPuzzleGroups { get; set; } = new List<int>();
+        public HashSet<int> NowOpenPuzzleGroups { get; set; } = new HashSet<int>();
 
         /// <summary>
         /// 已完成的题目组
         /// </summary>
-        public List<int> FinishedGroups { get; set; } = new List<int>();
+        public HashSet<int> FinishedGroups { get; set; } = new HashSet<int>();
 
         /// <summary>
         /// 已完成的题目
         /// </summary>
-        public List<int> FinishedPuzzles { get; set; } = new List<int>();
+        public HashSet<int> FinishedPuzzles { get; set; } = new HashSet<int>();
 
         /// <summary>
         /// 已开放的隐藏题目
         /// </summary>
-        public List<int> OpenedHidePuzzles { get; set; } = new List<int>();
+        public HashSet<int> OpenedHidePuzzles { get; set; } = new HashSet<int>();
 
         /// <summary>
         /// 已使用的开放组
         /// </summary>
-        public List<int> UsedOpenGroups { get; set; } = new List<int>();
+        public HashSet<int> UsedOpenGroups { get; set; } = new HashSet<int>();
 
         /// <summary>
         /// 是否可以选择开放下一个组

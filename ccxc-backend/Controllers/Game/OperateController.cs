@@ -190,7 +190,7 @@ namespace ccxc_backend.Controllers.Game
                 }
             }
             //需判定题目组已开放或者题目本身作为隐藏题目开放
-            if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid) && !progressData.OpenedHidePuzzles.Contains(puzzleItem.pid))
+            else if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid) && !progressData.OpenedHidePuzzles.Contains(puzzleItem.pid))
             {
                 answerLog.status = 4;
                 await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();

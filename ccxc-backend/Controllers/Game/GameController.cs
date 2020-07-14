@@ -54,7 +54,7 @@ namespace ccxc_backend.Controllers.Game
                     gid = gid,
                     data = new SaveData
                     {
-                        NowOpenPuzzleGroups = new List<int>(){ firstPuzzleGroup.pgid }
+                        NowOpenPuzzleGroups = new HashSet<int>(){ firstPuzzleGroup.pgid }
                     },
                     score = 0,
                     update_time = DateTime.Now,
@@ -264,7 +264,7 @@ namespace ccxc_backend.Controllers.Game
 
             var puzzleOverviewList = puzzleList.Select(it => new PuzzleOverview(it)
             {
-                is_finish = progressData.FinishedPuzzles.Contains(it.pgid) ? 1 : 0
+                is_finish = progressData.FinishedPuzzles.Contains(it.pid) ? 1 : 0
             }).ToList();
 
             //返回
@@ -322,7 +322,7 @@ namespace ccxc_backend.Controllers.Game
 
             var puzzleOverviewList = puzzleList.Select(it => new PuzzleOverview(it)
             {
-                is_finish = progressData.FinishedPuzzles.Contains(it.pgid) ? 1 : 0
+                is_finish = progressData.FinishedPuzzles.Contains(it.pid) ? 1 : 0
             }).ToList();
 
             //返回
@@ -400,15 +400,39 @@ namespace ccxc_backend.Controllers.Game
                     await response.Unauthorized("不能访问您未打开的区域");
                     return;
                 }
+
+                var prePuzzleRes = new GetPuzzleDetailResponse
+                {
+                    status = 1,
+                    puzzle = new PuzzleView(puzzleItem)
+                    {
+                        pgid = 0
+                    }
+                };
+                await response.JsonResponse(200, prePuzzleRes);
+                return;
             }
-            else if (puzzleItem.answer_type == 3)
+
+            if (puzzleItem.answer_type == 3)
             {
                 if (!progressData.IsOpenFinalMeta)
                 {
                     await response.Unauthorized("不能访问您未打开的区域");
                     return;
                 }
+
+                var fmPuzzleRes = new GetPuzzleDetailResponse
+                {
+                    status = 1,
+                    puzzle = new PuzzleView(puzzleItem)
+                    {
+                        pgid = 0
+                    }
+                };
+                await response.JsonResponse(200, fmPuzzleRes);
+                return;
             }
+
             //取得当前题目组
             if (!puzzleGroupDict.ContainsKey(puzzleItem.pgid))
             {
@@ -445,7 +469,87 @@ namespace ccxc_backend.Controllers.Game
                     pg_name = thisPuzzleGroup.pg_name
                 }
             };
+
+            //隐藏区域不显示分组
+            if (thisPuzzleGroup.is_hide == 1)
+            {
+                res.puzzle.pgid = 0;
+                res.puzzle.pg_name = "";
+            }
+
             await response.JsonResponse(200, res);
+        }
+
+        [HttpHandler("POST", "/play/get-final-info")]
+        public async Task GetFinalInfo(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<GetPuzzleDetailRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            //取得Final题目
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var puzzleItem = (await puzzleDb.SelectAllFromCache()).First(it => it.answer_type == 3);
+
+            var finalInfo = "";
+
+            if (puzzleItem != null)
+            {
+                if (progressData.FinishedPuzzles.Contains(puzzleItem.pid))
+                {
+                    //题目组信息
+                    var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
+                    var finalGroup = (await puzzleGroupDb.SelectAllFromCache()).First(it => it.pgid == puzzleItem.pgid);
+
+                    if (finalGroup != null)
+                    {
+                        finalInfo = finalGroup.pg_desc;
+                    }
+                }
+            }
+
+            await response.JsonResponse(200, new GetFinalInfoResponse
+            {
+                status = 1,
+                desc = finalInfo
+            });
         }
     }
 }
