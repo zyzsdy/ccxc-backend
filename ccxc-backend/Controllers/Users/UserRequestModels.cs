@@ -41,6 +41,7 @@ namespace ccxc_backend.Controllers.Users
             public int roleid { get; set; }
             public string token { get; set; }
             public string sk { get; set; }
+            public string etc { get; set; }
         }
     }
 

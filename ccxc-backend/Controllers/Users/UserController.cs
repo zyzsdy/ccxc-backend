@@ -89,7 +89,9 @@ namespace ccxc_backend.Controllers.Users
 
             //数据库对象
             var userDb = DbFactory.Get<User>();
-            var userDict = (await userDb.SelectAllFromCache()).ToDictionary(it => it.email, it => it);
+            var userDict = (await userDb.SelectAllFromCache())
+                .GroupBy(it => it.email)
+                .ToDictionary(it => it.Key, it => it.First());
 
             if (!userDict.ContainsKey(requestJson.email))
             {
@@ -177,7 +179,8 @@ namespace ccxc_backend.Controllers.Users
                     username = user.username,
                     roleid = user.roleid,
                     token = uuid,
-                    sk = sk
+                    sk = sk,
+                    etc = user.info_key == "beta_user" ? "52412" : "10000"
                 }
             });
         }

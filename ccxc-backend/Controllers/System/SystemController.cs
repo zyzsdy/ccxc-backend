@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Text;
 using System.Threading.Tasks;
+using ccxc_backend.DataModels;
+using ccxc_backend.DataServices;
+using System.Linq;
 
 namespace ccxc_backend.Controllers.System
 {
@@ -18,6 +21,83 @@ namespace ccxc_backend.Controllers.System
                 status = 1,
                 start_time = Config.Config.Options.StartTime
             });
+        }
+
+        [HttpHandler("POST", "/heartbeat")]
+        public async Task HeartBeat(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var newMessage = 0; //新消息数目
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem != null)
+            {
+                var gid = groupBindItem.gid;
+                var messageDb = DbFactory.Get<Message>();
+                newMessage = await messageDb.SimpleDb.AsQueryable()
+                    .Where(it => it.gid == gid && it.direction == 1 && it.is_read == 0).CountAsync();
+            }
+
+            await response.JsonResponse(200, new
+            {
+                status = 1,
+                new_message = newMessage
+            });
+        }
+
+        [HttpHandler("POST", "/get-scoreboard-info")]
+        public async Task GetScoreBoardInfo(Request request, Response response)
+        {
+            var groupDb = DbFactory.Get<UserGroup>();
+            var groupList = await groupDb.SelectAllFromCache();
+
+            var progressDb = DbFactory.Get<Progress>();
+            var progressList = await progressDb.SimpleDb.AsQueryable().ToListAsync();
+            var progressDict = progressList.ToDictionary(it => it.gid, it => it);
+
+            var scoreBoardList = groupList.Select(it =>
+            {
+                var r = new ScoreBoardItem
+                {
+                    gid = it.gid,
+                    group_name = it.groupname,
+                    group_profile = it.profile
+                };
+
+                if (progressDict.ContainsKey(it.gid))
+                {
+                    var progress = progressDict[it.gid];
+                    r.is_finish = progress.is_finish;
+
+                    if (r.is_finish == 1)
+                    {
+                        r.total_time =
+                            (progress.finish_time -
+                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours +
+                            progress.penalty;
+                    }
+
+                    r.score = progress.score;
+                    r.finished_puzzle_count = progress.data.FinishedPuzzles.Count;
+                }
+
+                return r;
+            }).ToList();
+
+            var res = new ScoreBoardResponse
+            {
+                status = 1,
+                finished_groups = scoreBoardList.Where(it => it.is_finish == 1).OrderBy(it => it.total_time).ThenBy(it => it.finished_puzzle_count).ToList(),
+                groups = scoreBoardList.Where(it => it.is_finish != 1).OrderByDescending(it => it.score).ThenBy(it => it.gid).ToList()
+            };
+
+            await response.JsonResponse(200, res);
         }
     }
 }

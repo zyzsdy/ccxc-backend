@@ -69,6 +69,53 @@ namespace ccxc_backend.Controllers.Game
             await response.OK();
         }
 
+        [HttpHandler("POST", "/play/get-game-info")]
+        public async Task GetGameInfo(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            var res = new GetGameInfoResponse
+            {
+                status = 1,
+                open_group_count = progressData.NowOpenPuzzleGroups.Count,
+                finished_puzzle_count = progressData.FinishedPuzzles.Count,
+                is_open_next_group = progressData.IsOpenNextGroup ? 1 : 0,
+                score = progress.score,
+                penalty = progress.penalty
+            };
+            await response.JsonResponse(200, res);
+        }
+
         [HttpHandler("POST", "/play/get-puzzle-group")]
         public async Task GetPuzzleGroup(Request request, Response response)
         {

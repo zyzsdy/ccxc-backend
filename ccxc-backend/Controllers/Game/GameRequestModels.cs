@@ -19,6 +19,15 @@ namespace ccxc_backend.Controllers.Game
         public List<PuzzleGroupView> puzzle_groups { get; set; }
     }
 
+    public class GetGameInfoResponse : BasicResponse
+    {
+        public int open_group_count { get; set; }
+        public int finished_puzzle_count { get; set; }
+        public int is_open_next_group { get; set; }
+        public double score { get; set; }
+        public double penalty { get; set; }
+    }
+
     public class PuzzleGroupView : puzzle_group
     {
         public PuzzleGroupView(puzzle_group pg)

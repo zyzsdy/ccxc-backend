@@ -40,5 +40,6 @@ namespace ccxc_backend.Controllers.Mail
 
         public string user_name { get; set; }
         public int roleid { get; set; }
+        public string group_name { get; set; }
     }
 }
