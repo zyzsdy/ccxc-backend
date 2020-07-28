@@ -39,7 +39,8 @@ namespace ccxc_backend.Controllers.Admin
                 image = requestJson.image,
                 html = requestJson.html,
                 answer_type = requestJson.answer_type,
-                answer = requestJson.answer
+                answer = requestJson.answer,
+                jump_keyword = requestJson.jump_keyword
             };
 
             await puzzleDb.SimpleDb.AsInsertable(newPuzzle).ExecuteCommandAsync();
@@ -97,7 +98,8 @@ namespace ccxc_backend.Controllers.Admin
                 image = requestJson.image,
                 html = requestJson.html,
                 answer_type = requestJson.answer_type,
-                answer = requestJson.answer
+                answer = requestJson.answer,
+                jump_keyword = requestJson.jump_keyword
             };
 
             var puzzleDb = DbFactory.Get<Puzzle>();

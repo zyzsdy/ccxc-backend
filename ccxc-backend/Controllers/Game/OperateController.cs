@@ -155,6 +155,35 @@ namespace ccxc_backend.Controllers.Game
             //取出待判定题目
             var puzzleDb = DbFactory.Get<Puzzle>();
             var puzzleList = await puzzleDb.SelectAllFromCache();
+
+            //取出隐藏关键字
+            var jumpKeyWords = puzzleList.Where(it => !string.IsNullOrEmpty(it.jump_keyword))
+                .GroupBy(it => it.jump_keyword.ToLower())
+                .ToDictionary(it => it.Key, it => it.First());
+
+            if (jumpKeyWords.ContainsKey(requestJson.answer.ToLower()))
+            {
+                var jumpTarget = jumpKeyWords[requestJson.answer.ToLower()];
+
+                answerLog.status = 6;
+                await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
+
+                //回写存档
+                progress.data.OpenedHidePuzzles.Add(jumpTarget.pid);
+                await progressDb.SimpleDb.AsUpdateable(progress).IgnoreColumns(it => new { it.finish_time }).ExecuteCommandAsync();
+
+                //返回
+                await response.JsonResponse(200, new AnswerResponse
+                {
+                    status = 3,
+                    answer_status = 6,
+                    message = "好像发现了什么奇妙空间。",
+                    location = $"/puzzle/{jumpTarget.pid}"
+                });
+                return;
+            }
+
+
             var puzzleItem = puzzleList.Where(it => it.pid == requestJson.pid).First();
 
             if (puzzleItem == null)

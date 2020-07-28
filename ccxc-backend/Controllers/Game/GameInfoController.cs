@@ -62,7 +62,7 @@ namespace ccxc_backend.Controllers.Game
             var answerLogDb = DbFactory.Get<AnswerLog>();
             var answerList = await answerLogDb.SimpleDb.AsQueryable()
                 .Where(it =>
-                    it.gid == gid && it.pid == requestJson.pid && (it.status == 1 || it.status == 2 || it.status == 3))
+                    it.gid == gid && it.pid == requestJson.pid && (it.status == 1 || it.status == 2 || it.status == 3 || it.status == 6))
                 .OrderBy(it => it.create_time, OrderByType.Desc)
                 .Take(10)
                 .ToListAsync();

@@ -502,7 +502,7 @@ namespace ccxc_backend.Controllers.Game
                 }
             }
             //  其他题目需当前题目组已完成或开放
-            if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid))
+            else if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid))
             {
                 await response.Unauthorized("不能访问您未打开的区域");
                 return;
