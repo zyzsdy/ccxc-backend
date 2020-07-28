@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Ccxc.Core.HttpServer;
 using ccxc_backend.DataModels;
@@ -42,10 +43,19 @@ namespace ccxc_backend.Controllers.Mail
 
             var gid = groupBindItem.gid;
 
+            var content = requestJson.content;
+            const string regExStyle = "<style[^>]*?>[\\s\\S]*?<\\/style>";
+            const string regExScript = "<script[^>]*?>[\\s\\S]*?<\\/script>";
+            const string regExHtml = "<[^>]+>";
+
+            content = Regex.Replace(content, regExStyle, "", RegexOptions.IgnoreCase);
+            content = Regex.Replace(content, regExScript, "", RegexOptions.IgnoreCase);
+            content = Regex.Replace(content, regExHtml, "");
+
             //写入新消息
             var newMessage = new message
             {
-                content = requestJson.content,
+                content = content,
                 update_time = DateTime.Now,
                 create_time = DateTime.Now,
                 gid = gid,
