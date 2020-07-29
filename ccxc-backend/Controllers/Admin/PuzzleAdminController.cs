@@ -40,7 +40,8 @@ namespace ccxc_backend.Controllers.Admin
                 html = requestJson.html,
                 answer_type = requestJson.answer_type,
                 answer = requestJson.answer,
-                jump_keyword = requestJson.jump_keyword
+                jump_keyword = requestJson.jump_keyword,
+                extend_content = requestJson.extend_content
             };
 
             await puzzleDb.SimpleDb.AsInsertable(newPuzzle).ExecuteCommandAsync();
@@ -99,7 +100,8 @@ namespace ccxc_backend.Controllers.Admin
                 html = requestJson.html,
                 answer_type = requestJson.answer_type,
                 answer = requestJson.answer,
-                jump_keyword = requestJson.jump_keyword
+                jump_keyword = requestJson.jump_keyword,
+                extend_content = requestJson.extend_content
             };
 
             var puzzleDb = DbFactory.Get<Puzzle>();

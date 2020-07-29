@@ -42,6 +42,9 @@ namespace ccxc_backend.DataModels
 
         [DbColumn(ColumnDescription = "隐藏题目跳转关键字", IsNullable = true)]
         public string jump_keyword { get; set; }
+
+        [DbColumn(ColumnDescription = "附加内容（正解后显示）", IsNullable = true)]
+        public string extend_content { get; set; }
     }
 
     public class Puzzle : MysqlClient<puzzle>

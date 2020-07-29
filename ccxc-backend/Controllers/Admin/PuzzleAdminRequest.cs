@@ -22,6 +22,7 @@ namespace ccxc_backend.Controllers.Admin
         [Required(Message = "答案不能为空")]
         public string answer { get; set; }
         public string jump_keyword { get; set; }
+        public string extend_content { get; set; }
     }
 
     public class DeletePuzzleRequest
@@ -46,6 +47,7 @@ namespace ccxc_backend.Controllers.Admin
         [Required(Message = "答案不能为空")]
         public string answer { get; set; }
         public string jump_keyword { get; set; }
+        public string extend_content { get; set; }
     }
 
     public class GetPuzzleResponse : BasicResponse

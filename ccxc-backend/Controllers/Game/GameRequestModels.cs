@@ -109,6 +109,8 @@ namespace ccxc_backend.Controllers.Game
         public string image { get; set; }
         public string html { get; set; }
         public int answer_type { get; set; }
+        public string extend_content { get; set; }
+        public int is_finish { get; set; }
     }
 
     public class GetFinalInfoResponse : BasicResponse

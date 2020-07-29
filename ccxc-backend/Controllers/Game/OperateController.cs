@@ -288,6 +288,7 @@ namespace ccxc_backend.Controllers.Game
 
             //检查是否可以打开新区域
             var successMessage = "OK";
+
             var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
             var nowPuzzleGroup = (await puzzleGroupDb.SelectAllFromCache()).Where(it => it.pgid == puzzleItem.pgid).First();
             if (nowPuzzleGroup != null && nowPuzzleGroup.is_hide == 0) //只有非隐藏分区才可打开新区域
@@ -298,7 +299,7 @@ namespace ccxc_backend.Controllers.Game
                     {
                         if (puzzleItem.answer_type == 1)
                         {
-                            successMessage = "成功解答出了Meta，好像有其他的区域开放了。";
+                            successMessage += " 成功解答出了Meta，好像有其他的区域开放了。";
                             progress.data.IsOpenNextGroup = true;
                             progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
                         }
@@ -307,7 +308,7 @@ namespace ccxc_backend.Controllers.Game
                     {
                         if (puzzleItem.answer_type == 1)
                         {
-                            successMessage = "成功解答出了Meta，可以开放下一个区域了。";
+                            successMessage += " 成功解答出了Meta，可以开放下一个区域了。";
                             progress.data.IsOpenNextGroup = true;
                             progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
                         }
@@ -320,16 +321,18 @@ namespace ccxc_backend.Controllers.Game
                             var halfNumber = totalPuzzle / 2;
                             if (finishedPuzzle >= halfNumber)
                             {
-                                successMessage = "在这个分区已经解答了大多数问题，可以去下个区域看看了。";
+                                successMessage += " 在这个分区已经解答了大多数问题，可以去下个区域看看了。";
                                 progress.data.IsOpenNextGroup = true;
                                 progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
                             }
                         }
                     }
                 }
+            }
 
-
-                
+            if (!string.IsNullOrEmpty(puzzleItem.extend_content))
+            {
+                successMessage += " 好像发现了什么线索（请注意题目页面多出来的新内容）。";
             }
 
             //检查是否符合开放FinalMeta条件
@@ -394,6 +397,7 @@ namespace ccxc_backend.Controllers.Game
             {
                 status = 1,
                 answer_status = 1,
+                extend_flag = string.IsNullOrEmpty(puzzleItem.extend_content) ? 0 : 16,
                 message = successMessage
             });
         }

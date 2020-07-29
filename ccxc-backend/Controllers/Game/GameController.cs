@@ -432,6 +432,8 @@ namespace ccxc_backend.Controllers.Game
             var puzzleDb = DbFactory.Get<Puzzle>();
             var puzzleItem = (await puzzleDb.SelectAllFromCache()).FirstOrDefault(it => it.pid == requestJson.pid);
 
+            var isFinished = progressData.FinishedPuzzles.Contains(requestJson.pid);
+
             if (puzzleItem == null)
             {
                 await response.Unauthorized("不能访问您未打开的区域");
@@ -453,7 +455,9 @@ namespace ccxc_backend.Controllers.Game
                     status = 1,
                     puzzle = new PuzzleView(puzzleItem)
                     {
-                        pgid = 0
+                        pgid = 0,
+                        extend_content = isFinished ? puzzleItem.extend_content : "",
+                        is_finish = isFinished ? 1 : 0
                     }
                 };
                 await response.JsonResponse(200, prePuzzleRes);
@@ -473,7 +477,9 @@ namespace ccxc_backend.Controllers.Game
                     status = 1,
                     puzzle = new PuzzleView(puzzleItem)
                     {
-                        pgid = 0
+                        pgid = 0,
+                        extend_content = isFinished ? puzzleItem.extend_content : "",
+                        is_finish = isFinished ? 1 : 0
                     }
                 };
                 await response.JsonResponse(200, fmPuzzleRes);
@@ -513,7 +519,9 @@ namespace ccxc_backend.Controllers.Game
                 status = 1,
                 puzzle = new PuzzleView(puzzleItem)
                 {
-                    pg_name = thisPuzzleGroup.pg_name
+                    pg_name = thisPuzzleGroup.pg_name,
+                    extend_content = isFinished ? puzzleItem.extend_content : "",
+                    is_finish = isFinished ? 1 : 0
                 }
             };
 
