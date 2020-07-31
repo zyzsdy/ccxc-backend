@@ -62,6 +62,28 @@ namespace ccxc_backend.Controllers.Groups
                 return;
             }
 
+            if (string.IsNullOrEmpty(requestJson.groupname) || requestJson.groupname.Length <= 0 || requestJson.groupname.Length > 32)
+            {
+                await response.BadRequest("组队名称不能太长。");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(requestJson.profile) || requestJson.profile.Length <= 0 || requestJson.profile.Length > 350)
+            {
+                await response.BadRequest("队伍简介不能太长。");
+                return;
+            }
+
+            var groupDb = DbFactory.Get<UserGroup>();
+            var groupNameSet = new HashSet<string>((await groupDb.SelectAllFromCache()).Select(it => it.groupname.ToLower()));
+
+            if (groupNameSet.Contains(requestJson.groupname.ToLower()))
+            {
+                await response.BadRequest("队名不能重复");
+                return;
+            }
+
+
             //新建组队
             var newGroup = new user_group
             {
@@ -71,7 +93,6 @@ namespace ccxc_backend.Controllers.Groups
                 update_time = now
             };
 
-            var groupDb = DbFactory.Get<UserGroup>();
             var newGid = await groupDb.SimpleDb.AsInsertable(newGroup).ExecuteReturnIdentityAsync();
             await groupDb.InvalidateCache();
 
@@ -141,9 +162,31 @@ namespace ccxc_backend.Controllers.Groups
 
             var gid = groupBindItem.gid;
 
+            if (string.IsNullOrEmpty(requestJson.groupname) || requestJson.groupname.Length <= 0 || requestJson.groupname.Length > 32)
+            {
+                await response.BadRequest("组队名称不能太长。");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(requestJson.profile) || requestJson.profile.Length <= 0 || requestJson.profile.Length > 350)
+            {
+                await response.BadRequest("队伍简介不能太长。");
+                return;
+            }
+
+
             //取出组队
             var groupDb = DbFactory.Get<UserGroup>();
             var groupList = await groupDb.SelectAllFromCache();
+
+            var groupNameSet = new HashSet<string>(groupList.Where(it => it.gid != gid).Select(it => it.groupname.ToLower()));
+
+            if (groupNameSet.Contains(requestJson.groupname.ToLower()))
+            {
+                await response.BadRequest("队名不能重复");
+                return;
+            }
+
 
             var groupItem = groupList.FirstOrDefault(it => it.gid == gid);
             if(groupItem == null)
