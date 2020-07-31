@@ -268,6 +268,18 @@ namespace ccxc_backend.Controllers.Users
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(requestJson.username))
+            {
+                await response.BadRequest("用户名不能是空白字符");
+                return;
+            }
+
+            if (requestJson.username.Length > 25)
+            {
+                await response.BadRequest("用户名长度过于长了");
+                return;
+            }
+
             //取出当前用户信息
             var userDb = DbFactory.Get<User>();
             var userList = await userDb.SelectAllFromCache();
