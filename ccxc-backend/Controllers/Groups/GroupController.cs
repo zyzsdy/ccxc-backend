@@ -62,13 +62,19 @@ namespace ccxc_backend.Controllers.Groups
                 return;
             }
 
-            if (string.IsNullOrEmpty(requestJson.groupname) || requestJson.groupname.Length <= 0 || requestJson.groupname.Length > 32)
+            if (string.IsNullOrWhiteSpace(requestJson.groupname))
             {
-                await response.BadRequest("组队名称不能太长。");
+                await response.BadRequest("组队名称不能全为空白字符。");
                 return;
             }
 
-            if (string.IsNullOrEmpty(requestJson.profile) || requestJson.profile.Length <= 0 || requestJson.profile.Length > 350)
+            if (requestJson.groupname.Length > 32)
+            {
+                await response.BadRequest("组队名称太长。");
+                return;
+            }
+
+            if (requestJson.profile.Length > 350)
             {
                 await response.BadRequest("队伍简介不能太长。");
                 return;
@@ -162,13 +168,19 @@ namespace ccxc_backend.Controllers.Groups
 
             var gid = groupBindItem.gid;
 
-            if (string.IsNullOrEmpty(requestJson.groupname) || requestJson.groupname.Length <= 0 || requestJson.groupname.Length > 32)
+            if (string.IsNullOrWhiteSpace(requestJson.groupname))
             {
-                await response.BadRequest("组队名称不能太长。");
+                await response.BadRequest("组队名称不能全为空白字符。");
                 return;
             }
 
-            if (string.IsNullOrEmpty(requestJson.profile) || requestJson.profile.Length <= 0 || requestJson.profile.Length > 350)
+            if (requestJson.groupname.Length > 32)
+            {
+                await response.BadRequest("组队名称太长。");
+                return;
+            }
+
+            if (requestJson.profile.Length > 350)
             {
                 await response.BadRequest("队伍简介不能太长。");
                 return;

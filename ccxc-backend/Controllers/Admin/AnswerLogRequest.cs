@@ -63,4 +63,23 @@ namespace ccxc_backend.Controllers.Admin
         public int pgid { get; set; }
         public string title { get; set; }
     }
+
+    public class QueryLoginLogRequest
+    {
+        public List<int> uid { get; set; }
+        public List<int> status { get; set; }
+        public string email { get; set; }
+        public string ip { get; set; }
+        public string userid { get; set; }
+        public int order { get; set; } //0-倒序 1-正序
+        public int page { get; set; }
+    }
+
+    public class QueryLoginLogResponse : BasicResponse
+    {
+        public int page { get; set; }
+        public int page_size { get; set; }
+        public int total_count { get; set; }
+        public List<login_log> login_log { get; set; }
+    }
 }

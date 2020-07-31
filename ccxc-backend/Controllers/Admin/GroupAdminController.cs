@@ -97,5 +97,76 @@ namespace ccxc_backend.Controllers.Admin
                 penalty = groupProgress.penalty
             });
         }
+
+        [HttpHandler("POST", "/admin/get-group-overview")]
+        public async Task GetGroupOverview(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<GetGroupRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var groupDb = DbFactory.Get<UserGroup>();
+            var groupList = await groupDb.SelectAllFromCache();
+
+            var progressDb = DbFactory.Get<Progress>();
+            var progressList = await progressDb.SimpleDb.AsQueryable().ToListAsync();
+            var progressDict = progressList.ToDictionary(it => it.gid, it => it);
+
+            var resList = groupList.Select(it =>
+            {
+                var r = new GetGroupOverview
+                {
+                    gid = it.gid,
+                    create_time = it.create_time,
+                    groupname = it.groupname,
+                    profile = it.profile
+                };
+
+                if (progressDict.ContainsKey(it.gid))
+                {
+                    var progress = progressDict[it.gid];
+                    r.finished_puzzle_count = progress.data.FinishedPuzzles.Count;
+                    r.opened_puzzle_groups = string.Join(", ", progress.data.NowOpenPuzzleGroups);
+                    r.score = progress.score;
+                    r.is_finish = progress.is_finish;
+                    r.finish_time = progress.finish_time;
+                    r.penalty = progress.penalty;
+
+                    if (r.is_finish == 1)
+                    {
+                        r.total_time =
+                            (progress.finish_time -
+                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours +
+                            progress.penalty;
+                    }
+                }
+
+                return r;
+            });
+
+            List<GetGroupOverview> res;
+            if (requestJson.order == 0)
+            {
+                res = resList.OrderBy(it => it.gid).ToList();
+            }
+            else
+            {
+                res = resList.OrderByDescending(it => it.score).ToList();
+            }
+
+            await response.JsonResponse(200, new GetGroupOverviewResponse
+            {
+                status = 1,
+                groups = res
+            });
+        }
     }
 }
