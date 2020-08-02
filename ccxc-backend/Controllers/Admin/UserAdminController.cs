@@ -25,7 +25,8 @@ namespace ccxc_backend.Controllers.Admin
             var sessions = cache.FindKeys(keyPattern);
             var lastActionDict = (await Task.WhenAll(sessions.Select(async it => await cache.Get<UserSession>(it))))
                 .Where(it => it != null && it.is_active == 1)
-                .ToDictionary(it => it.uid, it => it.last_update);
+                .GroupBy(it => it.uid)
+                .ToDictionary(it => it.Key, it => it.First() == null ? DateTime.MinValue : it.First().last_update);
 
             var userDb = DbFactory.Get<User>();
             var userData = (await userDb.SelectAllFromCache()).Select(it =>

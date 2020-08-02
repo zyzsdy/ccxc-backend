@@ -15,7 +15,7 @@ namespace ccxc_backend.Controllers.Admin
         [HttpHandler("POST", "/admin/upload-prepare")]
         public async Task UploadPrepare(Request request, Response response)
         {
-            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member);
             if (userSession == null) return;
 
             var cache = DbFactory.GetCache();

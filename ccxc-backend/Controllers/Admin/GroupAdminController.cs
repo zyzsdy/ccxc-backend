@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Ccxc.Core.HttpServer;
 using ccxc_backend.DataModels;
 using ccxc_backend.DataServices;
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace ccxc_backend.Controllers.Admin
 {
@@ -167,6 +168,64 @@ namespace ccxc_backend.Controllers.Admin
                 status = 1,
                 groups = res
             });
+        }
+
+        [HttpHandler("POST", "/admin/get-p-user-list")]
+        public async Task GetPuzzleUserList(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var pidItems = (await puzzleDb.SelectAllFromCache()).Select(it => new PidItem
+            {
+                pid = it.pid,
+                pgid = it.pgid,
+                title = it.title
+            }).OrderBy(it => it.pgid).ThenBy(it => it.pid).ToList();
+
+            await response.JsonResponse(200, new GetUserListResponse
+            {
+                status = 1,
+                pid_item = pidItems
+            });
+        }
+
+        [HttpHandler("POST", "/admin/get-group-detail")]
+        public async Task GetGroupDetail(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<GroupAdminRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindUsers = new HashSet<int>((await groupBindDb.SelectAllFromCache())
+                .Where(it => it.gid == requestJson.gid)
+                .Select(it => it.uid));
+
+            var userDb = DbFactory.Get<User>();
+            var userList = (await userDb.SelectAllFromCache()).Where(it => groupBindUsers.Contains(it.uid))
+                .Select(it => new UserNameInfoItem(it)).ToList();
+
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == requestJson.gid).FirstAsync();
+
+            var res = new AdminGroupDetailResponse
+            {
+                status = 1,
+                users = userList,
+                progress = progress
+            };
+
+            await response.JsonResponse(200, res);
         }
     }
 }

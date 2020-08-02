@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Ccxc.Core.Utils.ExtensionFunctions;
+using ccxc_backend.DataModels;
 using Newtonsoft.Json;
 
 namespace ccxc_backend.Controllers.Admin
@@ -59,5 +60,25 @@ namespace ccxc_backend.Controllers.Admin
         /// 0-默认顺序（GID顺序） 1-排行榜顺序（分数）
         /// </summary>
         public int order { get; set; }
+    }
+
+    public class AdminGroupDetailResponse : BasicResponse
+    {
+        public List<UserNameInfoItem> users { get; set; }
+        public progress progress { get; set; }
+    }
+
+    public class UserNameInfoItem
+    {
+        public UserNameInfoItem(user u)
+        {
+            uid = u.uid;
+            username = u.username;
+            roleid = u.roleid;
+        }
+
+        public int uid { get; set; }
+        public string username { get; set; }
+        public int roleid { get; set; }
     }
 }
