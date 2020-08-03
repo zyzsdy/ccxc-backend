@@ -69,6 +69,57 @@ namespace ccxc_backend.Controllers.Game
             await response.OK();
         }
 
+        [HttpHandler("POST", "/play/get-prologue")]
+        public async Task GetPrologue(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            var groupDb = DbFactory.Get<PuzzleGroup>();
+            var prologueGroup = (await groupDb.SelectAllFromCache()).First(it => it.pg_name == "prologue");
+
+            var prologueResult = "";
+            if (prologueGroup != null)
+            {
+                prologueResult = prologueGroup.pg_desc;
+            }
+
+            await response.JsonResponse(200, new BasicResponse
+            {
+                status = 1,
+                message = prologueResult
+            });
+        }
+
         [HttpHandler("POST", "/play/get-game-info")]
         public async Task GetGameInfo(Request request, Response response)
         {
