@@ -21,6 +21,12 @@ namespace ccxc_backend.DataModels
         /// </summary>
         [DbColumn(DefaultValue = "0")]
         public byte is_hide { get; set; } = 0;
+
+        /// <summary>
+        /// 难度星级
+        /// </summary>
+        [DbColumn(DefaultValue = "1")]
+        public int difficulty { get; set; } = 1;
     }
 
     public class PuzzleGroup : MysqlClient<puzzle_group>

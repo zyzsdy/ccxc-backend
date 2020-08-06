@@ -336,7 +336,7 @@ namespace ccxc_backend.Controllers.Game
             }
 
             //检查是否符合开放FinalMeta条件
-            if (progress.data.FinishedGroups.Count >= Config.Config.Options.ShowFinalGroups)
+            if (progress.data.NowOpenPuzzleGroups.Count >= Config.Config.Options.ShowFinalOpenGroups && progress.data.FinishedGroups.Count >= Config.Config.Options.ShowFinalGroups)
             {
                 progress.data.IsOpenPreFinal = true;
             }

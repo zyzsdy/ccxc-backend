@@ -35,6 +35,7 @@ namespace ccxc_backend.Controllers.Game
             pgid = pg.pgid;
             pg_name = pg.pg_name;
             is_hide = pg.is_hide;
+            difficulty = pg.difficulty;
         }
 
         //是否完成本题目组（0-未完成 1-完成）

@@ -32,7 +32,7 @@ namespace ccxc_backend.Config
         public string PassHashKey2 { get; set; } = "yYnjYy,qSJ;;";
 
         [OptionDescription("用户Session有效期，单位秒，默认3600。")]
-        public int UserSessionTimeout { get; set; } = 3600;
+        public int UserSessionTimeout { get; set; } = 7200;
 
         [OptionDescription("冷却超时时间，单位秒，默认300。")]
         public int CooldownTime { get; set; } = 300;
@@ -51,6 +51,9 @@ namespace ccxc_backend.Config
 
         [OptionDescription("至少完成多少个区域以后才可见PreFinalMeta")]
         public int ShowFinalGroups { get; set; } = 4;
+
+        [OptionDescription("至少打开多少个区域以后才可见PreFinalMeta")]
+        public int ShowFinalOpenGroups { get; set; } = 7;
 
         public static Config Options { get; set; } = SystemOption.GetOption<Config>("Config/CcxcConfig.xml");
     }
