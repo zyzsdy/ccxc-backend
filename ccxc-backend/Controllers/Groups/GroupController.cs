@@ -38,6 +38,7 @@ namespace ccxc_backend.Controllers.Groups
                 if(now > regDeadline)
                 {
                     await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过。");
+                    return;
                 }
             }
 
@@ -152,6 +153,7 @@ namespace ccxc_backend.Controllers.Groups
                 if (now > regDeadline)
                 {
                     await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队伍信息。");
+                    return;
                 }
             }
 
@@ -233,6 +235,7 @@ namespace ccxc_backend.Controllers.Groups
                 if (now > regDeadline)
                 {
                     await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队伍信息。");
+                    return;
                 }
             }
 
@@ -317,6 +320,7 @@ namespace ccxc_backend.Controllers.Groups
                 if (now > regDeadline)
                 {
                     await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队伍信息。");
+                    return;
                 }
             }
 
@@ -398,6 +402,7 @@ namespace ccxc_backend.Controllers.Groups
                 if (now > regDeadline)
                 {
                     await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队伍信息。");
+                    return;
                 }
             }
 
