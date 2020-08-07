@@ -230,7 +230,7 @@ namespace ccxc_backend.Controllers.Game
 
             //取得最后一次错误答题记录
             var lastWrongTime = DateTime.MinValue;
-            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1 && it.status != 3)
+            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1 && it.status != 3 && it.status != 6)
                 .OrderBy(it => it.create_time, OrderByType.Desc).FirstAsync();
 
             if(lastWrongAnswer != null)
