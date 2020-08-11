@@ -277,9 +277,6 @@ namespace ccxc_backend.Controllers.Game
 
             //更新存档
 
-            //本题目标记为已完成
-            progress.data.FinishedPuzzles.Add(puzzleItem.pid);
-
             //若解出的题目是分区Meta，则标记为该分区完成
             if (puzzleItem.answer_type == 1)
             {
@@ -319,7 +316,7 @@ namespace ccxc_backend.Controllers.Game
                             var finishedPuzzle = thisGroupPuzzleList.Where(it => progress.data.FinishedPuzzles.Contains(it.pid)).Count();
 
                             var halfNumber = totalPuzzle / 2;
-                            if (finishedPuzzle >= halfNumber)
+                            if ((finishedPuzzle + 1)  >= halfNumber)
                             {
                                 successMessage += " 在这个分区已经解答了大多数问题，可以去下个区域看看了。";
                                 progress.data.IsOpenNextGroup = true;
@@ -347,35 +344,47 @@ namespace ccxc_backend.Controllers.Game
 
             //计算分数
             //时间分数为 1000 - （开赛以来的总时长 + 罚时）
-            const double timeBaseScore = 1000d;
-            var timeSpanHours = (DateTime.Now - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours + progress.penalty;
-            var timeScore = timeBaseScore - timeSpanHours;
 
-            var puzzleFactor = 1.0d; //题目得分系数
-            if(puzzleItem.answer_type == 1)
+            if (!progressData.FinishedPuzzles.Contains(puzzleItem.pid))
             {
-                puzzleFactor = 5.0d;
-            }
-            else if(puzzleItem.answer_type == 2)
-            {
-                puzzleFactor = 10.0d;
-            }
-            else if(puzzleItem.answer_type == 3)
-            {
-                puzzleFactor = 50.0d;
-            }
-            else if(puzzleItem.answer_type == 4)
-            {
-                puzzleFactor = 0.0d;
-            }
-
-            if (progress.is_finish == 1)
-            {
-                puzzleFactor *= 0.5; //完赛后继续答题题目分数减半
-            }
 
 
-            progress.score += timeScore * puzzleFactor; //累加本题分数
+
+                const double timeBaseScore = 1000d;
+                var timeSpanHours =
+                    (DateTime.Now - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime))
+                    .TotalHours + progress.penalty;
+                var timeScore = timeBaseScore - timeSpanHours;
+
+                var puzzleFactor = 1.0d; //题目得分系数
+                if (puzzleItem.answer_type == 1)
+                {
+                    puzzleFactor = 5.0d;
+                }
+                else if (puzzleItem.answer_type == 2)
+                {
+                    puzzleFactor = 10.0d;
+                }
+                else if (puzzleItem.answer_type == 3)
+                {
+                    puzzleFactor = 50.0d;
+                }
+                else if (puzzleItem.answer_type == 4)
+                {
+                    puzzleFactor = 0.0d;
+                }
+
+                if (progress.is_finish == 1)
+                {
+                    puzzleFactor *= 0.5; //完赛后继续答题题目分数减半
+                }
+
+
+                progress.score += timeScore * puzzleFactor; //累加本题分数
+            }
+
+            //本题目标记为已完成
+            progress.data.FinishedPuzzles.Add(puzzleItem.pid);
 
             //回写存档
 
