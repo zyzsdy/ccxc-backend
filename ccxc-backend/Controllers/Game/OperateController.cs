@@ -389,7 +389,7 @@ namespace ccxc_backend.Controllers.Game
             //回写存档
 
             //计算是否完赛
-            if (puzzleItem.answer_type == 3)
+            if (puzzleItem.answer_type == 3 && progress.is_finish != 1)
             {
                 progress.is_finish = 1;
                 progress.finish_time = DateTime.Now;
