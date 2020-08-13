@@ -67,6 +67,39 @@ namespace ccxc_backend.Controllers.Admin
             await response.OK();
         }
 
+        [HttpHandler("POST", "/admin/del-penalty")]
+        public async Task DelPenalty(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<GroupAdminRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var penaltyDecrement = Config.Config.Options.PenaltyDefault;
+            var progressDb = DbFactory.Get<Progress>();
+
+            var groupProgress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == requestJson.gid).FirstAsync();
+
+            if (groupProgress == null)
+            {
+                await response.BadRequest("找不到指定队伍");
+                return;
+            }
+
+            groupProgress.penalty -= penaltyDecrement;
+
+            await progressDb.SimpleDb.AsUpdateable(groupProgress).UpdateColumns(it => new { it.penalty })
+                .ExecuteCommandAsync();
+            await response.OK();
+        }
+
         [HttpHandler("POST", "/admin/get-penalty")]
         public async Task GetPenalty(Request request, Response response)
         {
