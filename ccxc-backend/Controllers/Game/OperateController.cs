@@ -14,81 +14,6 @@ namespace ccxc_backend.Controllers.Game
     [Export(typeof(HttpController))]
     public class OperateController : HttpController
     {
-        [HttpHandler("POST", "/unlock-group")]
-        public async Task UnlockGroup(Request request, Response response)
-        {
-            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
-            if (userSession == null) return;
-
-            var requestJson = request.Json<UnlockGroupRequest>();
-
-            //判断请求是否有效
-            if (!Validation.Valid(requestJson, out string reason))
-            {
-                await response.BadRequest(reason);
-                return;
-            }
-
-            //取得该用户GID
-            var groupBindDb = DbFactory.Get<UserGroupBind>();
-            var groupBindList = await groupBindDb.SelectAllFromCache();
-
-            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
-            if (groupBindItem == null)
-            {
-                await response.BadRequest("未确定组队？");
-                return;
-            }
-
-            var gid = groupBindItem.gid;
-
-            //取得进度
-            var progressDb = DbFactory.Get<Progress>();
-            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
-            if (progress == null)
-            {
-                await response.BadRequest("没有进度，请返回首页重新开始。");
-                return;
-            }
-
-            var progressData = progress.data;
-            if (progressData == null)
-            {
-                await response.BadRequest("未找到可用存档，请联系管理员。");
-                return;
-            }
-
-            if (!progressData.IsOpenNextGroup)
-            {
-                await response.BadRequest("还不能开放下一个区域");
-                return;
-            }
-
-            if (progressData.NowOpenPuzzleGroups.Contains(requestJson.unlock_puzzle_group_id))
-            {
-                await response.BadRequest("选择的区域已开放");
-                return;
-            }
-
-            //取得分组列表
-            var groupDb = DbFactory.Get<PuzzleGroup>();
-            var groupIdSet = new HashSet<int>((await groupDb.SelectAllFromCache()).Where(it => it.is_hide == 0).Select(it => it.pgid));
-
-            if (!groupIdSet.Contains(requestJson.unlock_puzzle_group_id))
-            {
-                await response.BadRequest("选择的区域不存在");
-                return;
-            }
-
-            //修改当前启用的分组
-            progress.data.IsOpenNextGroup = false;
-            progress.data.NowOpenPuzzleGroups.Add(requestJson.unlock_puzzle_group_id);
-            progress.update_time = DateTime.Now;
-
-            await progressDb.SimpleDb.AsUpdateable(progress).IgnoreColumns(it => new { it.finish_time }).ExecuteCommandAsync();
-            await response.OK();
-        }
-
         [HttpHandler("POST", "/check-answer")]
         public async Task CheckAnswer(Request request, Response response)
         {
@@ -112,6 +37,8 @@ namespace ccxc_backend.Controllers.Game
                 pid = requestJson.pid,
                 answer = requestJson.answer
             };
+
+            var answer = requestJson.answer.ToLower().Replace(" ", "");
 
             //取得该用户GID
             var groupBindDb = DbFactory.Get<UserGroupBind>();
@@ -156,14 +83,15 @@ namespace ccxc_backend.Controllers.Game
             var puzzleDb = DbFactory.Get<Puzzle>();
             var puzzleList = await puzzleDb.SelectAllFromCache();
 
+            //1. 判定是否可以激活隐藏题目
             //取出隐藏关键字
             var jumpKeyWords = puzzleList.Where(it => !string.IsNullOrEmpty(it.jump_keyword))
-                .GroupBy(it => it.jump_keyword.ToLower())
+                .GroupBy(it => it.jump_keyword.ToLower().Replace(" ", ""))
                 .ToDictionary(it => it.Key, it => it.First());
 
-            if (jumpKeyWords.ContainsKey(requestJson.answer.ToLower()))
+            if (jumpKeyWords.ContainsKey(answer))
             {
-                var jumpTarget = jumpKeyWords[requestJson.answer.ToLower()];
+                var jumpTarget = jumpKeyWords[answer];
 
                 answerLog.status = 6;
                 await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
@@ -178,12 +106,12 @@ namespace ccxc_backend.Controllers.Game
                     status = 3,
                     answer_status = 6,
                     message = "好像发现了什么奇妙空间。",
-                    location = $"/puzzle/{jumpTarget.pid}"
+                    location = $"/clue/{jumpTarget.pid}"
                 });
                 return;
             }
 
-
+            //2. 判定题目可见性
             var puzzleItem = puzzleList.Where(it => it.pid == requestJson.pid).First();
 
             if (puzzleItem == null)
@@ -195,8 +123,14 @@ namespace ccxc_backend.Controllers.Game
                 return;
             }
 
-            //FinalMeta需存档可见
-            if (puzzleItem.answer_type == 2)
+            
+            //取得普通小题已经打开的区域（1~3）
+            var cache = DbFactory.GetCache();
+            var openedGroupKey = cache.GetDataKey("opened-groups");
+            var openedGroup = await cache.Get<int>(openedGroupKey);
+
+            //prefinal需存档可见
+            if (puzzleItem.pgid == 4)
             {
                 if (!progressData.IsOpenPreFinal)
                 {
@@ -207,9 +141,10 @@ namespace ccxc_backend.Controllers.Game
                     return;
                 }
             }
-            else if (puzzleItem.answer_type == 3)
+            //final区域需存档可见
+            else if (puzzleItem.pgid == 5)
             {
-                if (!progressData.IsOpenFinalMeta)
+                if (!progressData.IsOpenFinalStage)
                 {
                     answerLog.status = 4;
                     await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
@@ -218,8 +153,8 @@ namespace ccxc_backend.Controllers.Game
                     return;
                 }
             }
-            //需判定题目组已开放或者题目本身作为隐藏题目开放
-            else if (!progressData.NowOpenPuzzleGroups.Contains(puzzleItem.pgid) && !progressData.OpenedHidePuzzles.Contains(puzzleItem.pid))
+            //非prefinal或final区域：需判定题目组已开放或者题目本身作为隐藏题目开放
+            else if (puzzleItem.pgid > openedGroup && !progressData.OpenedHidePuzzles.Contains(puzzleItem.pid))
             {
                 answerLog.status = 4;
                 await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
@@ -257,8 +192,21 @@ namespace ccxc_backend.Controllers.Game
             }
 
             //判断答案是否正确
-            if (!string.Equals(puzzleItem.answer, requestJson.answer, StringComparison.CurrentCultureIgnoreCase))
+            var trueAnswer = puzzleItem.answer.ToLower().Replace(" ", "");
+            if (!string.Equals(trueAnswer, answer, StringComparison.CurrentCultureIgnoreCase))
             {
+                //答案错误，判断是否存在附加提示
+                var addAnswerDb = DbFactory.Get<AdditionalAnswer>();
+                var addAnswerListAll = await addAnswerDb.SelectAllFromCache();
+                var addAnswerDict = addAnswerListAll.Where(x => x.pid == puzzleItem.pid).ToDictionary(x => x.answer.ToLower().Replace(" ", ""), x => x.message);
+
+                var message = "答案错误";
+                if (addAnswerDict.ContainsKey(answer))
+                {
+                    message = $"答案错误，但是获得了一些信息：{addAnswerDict[answer]}";
+                }
+
+
                 answerLog.status = 2;
                 await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
 
@@ -266,7 +214,7 @@ namespace ccxc_backend.Controllers.Game
                 {
                     status = 1,
                     answer_status = 2,
-                    message = "答案错误"
+                    message = message
                 });
                 return;
             }
@@ -275,7 +223,8 @@ namespace ccxc_backend.Controllers.Game
             answerLog.status = 1;
             await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
 
-            //更新存档
+            //==============更新存档=====================
+
 
             //若解出的题目是分区Meta，则标记为该分区完成
             if (puzzleItem.answer_type == 1)
@@ -285,46 +234,16 @@ namespace ccxc_backend.Controllers.Game
 
             //检查是否可以打开新区域
             var successMessage = "OK";
-
-            var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
-            var nowPuzzleGroup = (await puzzleGroupDb.SelectAllFromCache()).Where(it => it.pgid == puzzleItem.pgid).First();
-            if (nowPuzzleGroup != null && nowPuzzleGroup.is_hide == 0) //只有非隐藏分区才可打开新区域
+            //检查是否可以开放PreFinal（条件：M1-M3全部回答正确时该值变为True，可展示M4）
+            if (progress.data.FinishedGroups.Contains(1) && progress.data.FinishedGroups.Contains(2) && progress.data.FinishedGroups.Contains(3))
             {
-                if (!progressData.UsedOpenGroups.Contains(puzzleItem.pgid)) //只有未开放过新区域的分组可以打开新区域
-                {
-                    if (progressData.NowOpenPuzzleGroups.Count <= 1) //第一个分区，需完成分区meta
-                    {
-                        if (puzzleItem.answer_type == 1)
-                        {
-                            successMessage += " 成功解答出了Meta，好像有其他的区域开放了。";
-                            progress.data.IsOpenNextGroup = true;
-                            progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
-                        }
-                    }
-                    else //否则仅需完成本区域内半数题目（向上取整）
-                    {
-                        if (puzzleItem.answer_type == 1)
-                        {
-                            successMessage += " 成功解答出了Meta，可以开放下一个区域了。";
-                            progress.data.IsOpenNextGroup = true;
-                            progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
-                        }
-                        else
-                        {
-                            var thisGroupPuzzleList = puzzleList.Where(it => it.pgid == puzzleItem.pgid).ToList();
-                            var totalPuzzle = thisGroupPuzzleList.Count;
-                            var finishedPuzzle = thisGroupPuzzleList.Where(it => progress.data.FinishedPuzzles.Contains(it.pid)).Count();
+                progress.data.IsOpenPreFinal = true;
+            }
 
-                            var halfNumber = totalPuzzle / 2;
-                            if ((finishedPuzzle + 1)  >= halfNumber)
-                            {
-                                successMessage += " 在这个分区已经解答了大多数问题，可以去下个区域看看了。";
-                                progress.data.IsOpenNextGroup = true;
-                                progress.data.UsedOpenGroups.Add(puzzleItem.pgid);
-                            }
-                        }
-                    }
-                }
+            //检查是否可以开放最终Meta区域（条件：M4回答正确时该值变为True，可展示M5-M8、FM）
+            if (progress.data.FinishedGroups.Contains(4))
+            {
+                progress.data.IsOpenFinalStage = true;
             }
 
             if (!string.IsNullOrEmpty(puzzleItem.extend_content))
@@ -332,24 +251,12 @@ namespace ccxc_backend.Controllers.Game
                 successMessage += " 好像发现了什么线索（请注意题目页面多出来的新内容）。";
             }
 
-            //检查是否符合开放FinalMeta条件
-            if (progress.data.NowOpenPuzzleGroups.Count >= Config.Config.Options.ShowFinalOpenGroups && progress.data.FinishedGroups.Count >= Config.Config.Options.ShowFinalGroups)
-            {
-                progress.data.IsOpenPreFinal = true;
-            }
-            if (puzzleItem.answer_type == 2)
-            {
-                progress.data.IsOpenFinalMeta = true;
-            }
-
             //计算分数
-            //时间分数为 1000 - （开赛以来的总时长 + 罚时）
+            //得分为 时间分数 * 系数
+            //时间分数为 1000 - （开赛以来的总时长 + 使用过的提示币数量）
 
             if (!progressData.FinishedPuzzles.Contains(puzzleItem.pid))
             {
-
-
-
                 const double timeBaseScore = 1000d;
                 var timeSpanHours =
                     (DateTime.Now - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime))
@@ -359,15 +266,11 @@ namespace ccxc_backend.Controllers.Game
                 var puzzleFactor = 1.0d; //题目得分系数
                 if (puzzleItem.answer_type == 1)
                 {
-                    puzzleFactor = 5.0d;
-                }
-                else if (puzzleItem.answer_type == 2)
-                {
                     puzzleFactor = 10.0d;
                 }
                 else if (puzzleItem.answer_type == 3)
                 {
-                    puzzleFactor = 50.0d;
+                    puzzleFactor = 1000.0d;
                 }
                 else if (puzzleItem.answer_type == 4)
                 {

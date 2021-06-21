@@ -42,8 +42,7 @@ namespace ccxc_backend.Controllers.Admin
         public DateTime create_time { get; set; }
 
         public string profile { get; set; }
-        public int finished_puzzle_count { get; set; }
-        public string opened_puzzle_groups { get; set; }
+        public List<int> finished_puzzle { get; set; }
         public double score { get; set; }
         public int is_finish { get; set; }
 

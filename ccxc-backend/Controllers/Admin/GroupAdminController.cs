@@ -167,8 +167,7 @@ namespace ccxc_backend.Controllers.Admin
                 if (progressDict.ContainsKey(it.gid))
                 {
                     var progress = progressDict[it.gid];
-                    r.finished_puzzle_count = progress.data.FinishedPuzzles.Count;
-                    r.opened_puzzle_groups = string.Join(", ", progress.data.NowOpenPuzzleGroups);
+                    r.finished_puzzle = progress.data.FinishedPuzzles.ToList();
                     r.score = progress.score;
                     r.is_finish = progress.is_finish;
                     r.finish_time = progress.finish_time;
@@ -178,8 +177,7 @@ namespace ccxc_backend.Controllers.Admin
                     {
                         r.total_time =
                             (progress.finish_time -
-                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours +
-                            progress.penalty;
+                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours;
                     }
                 }
 

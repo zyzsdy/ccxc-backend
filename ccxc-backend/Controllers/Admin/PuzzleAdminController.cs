@@ -41,7 +41,14 @@ namespace ccxc_backend.Controllers.Admin
                 answer_type = requestJson.answer_type,
                 answer = requestJson.answer,
                 jump_keyword = requestJson.jump_keyword,
-                extend_content = requestJson.extend_content
+                extend_content = requestJson.extend_content,
+                extend_data = requestJson.extend_data,
+                tips1 = requestJson.tips1,
+                tips2 = requestJson.tips2,
+                tips3 = requestJson.tips3,
+                tips1title = requestJson.tips1title,
+                tips2title = requestJson.tips2title,
+                tips3title = requestJson.tips3title,
             };
 
             await puzzleDb.SimpleDb.AsInsertable(newPuzzle).ExecuteCommandAsync();
@@ -101,7 +108,14 @@ namespace ccxc_backend.Controllers.Admin
                 answer_type = requestJson.answer_type,
                 answer = requestJson.answer,
                 jump_keyword = requestJson.jump_keyword,
-                extend_content = requestJson.extend_content
+                extend_content = requestJson.extend_content,
+                extend_data = requestJson.extend_data,
+                tips1 = requestJson.tips1,
+                tips2 = requestJson.tips2,
+                tips3 = requestJson.tips3,
+                tips1title = requestJson.tips1title,
+                tips2title = requestJson.tips2title,
+                tips3title = requestJson.tips3title,
             };
 
             var puzzleDb = DbFactory.Get<Puzzle>();
@@ -125,6 +139,99 @@ namespace ccxc_backend.Controllers.Admin
                 status = 1,
                 puzzle = puzzleList.ToList()
             });
+        }
+
+        [HttpHandler("POST", "/admin/get-additional-answer")]
+        public async Task GetAdditionalAnswer(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<DeletePuzzleRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var aadb = DbFactory.Get<AdditionalAnswer>();
+            var res = await aadb.SimpleDb.AsQueryable().Where(it => it.pid == requestJson.pid).ToListAsync();
+
+            await response.JsonResponse(200, new GetAdditionalAnswerResponse
+            {
+                status = 1,
+                additional_answer = res
+            });
+        }
+
+        [HttpHandler("POST", "/admin/add-additional-answer")]
+        public async Task AddAdditionalAnswer(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<additional_answer>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            requestJson.aaid = 0;
+
+            var aadb = DbFactory.Get<AdditionalAnswer>();
+            await aadb.SimpleDb.AsInsertable(requestJson).ExecuteCommandAsync();
+            await aadb.InvalidateCache();
+
+            await response.OK();
+        }
+
+        [HttpHandler("POST", "/admin/edit-additional-answer")]
+        public async Task EditAdditionalAnswer(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<additional_answer>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var aadb = DbFactory.Get<AdditionalAnswer>();
+            await aadb.SimpleDb.AsUpdateable(requestJson).ExecuteCommandAsync();
+            await aadb.InvalidateCache();
+
+            await response.OK();
+        }
+
+        [HttpHandler("POST", "/admin/delete-additional-answer")]
+        public async Task DeleteAdditionalAnswer(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<DeleteAdditionalAnswerRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var aadb = DbFactory.Get<AdditionalAnswer>();
+            await aadb.SimpleDb.AsDeleteable().Where(it => it.aaid == requestJson.aaid).ExecuteCommandAsync();
+            await aadb.InvalidateCache();
+
+            await response.OK();
         }
     }
 }

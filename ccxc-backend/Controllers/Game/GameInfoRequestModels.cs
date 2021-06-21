@@ -30,4 +30,18 @@ namespace ccxc_backend.Controllers.Game
 
         public string user_name { get; set; }
     }
+
+    public class GetClueMatrixResponse : BasicResponse
+    {
+        public List<SimplePuzzle> simple_puzzles { get; set; }
+    }
+
+    public class SimplePuzzle
+    {
+        public int pid { get; set; }
+        public string title { get; set; }
+        public int x { get; set; }
+        public int y { get; set; }
+        public int is_finished { get; set; }
+    }
 }

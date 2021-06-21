@@ -5,6 +5,11 @@ using System.Text;
 
 namespace ccxc_backend.Controllers.Game
 {
+    public class PuzzleStartResponse : BasicResponse
+    {
+        public string ticket { get; set; }
+    }
+
     public class GetPuzzleGroupResponse : BasicResponse
     {
         //是否可以选择开放下一个组（0-无法开放 1-可以开放）
@@ -93,7 +98,6 @@ namespace ccxc_backend.Controllers.Game
         public PuzzleView(puzzle p)
         {
             pid = p.pid;
-            pgid = p.pgid;
             type = p.type;
             title = p.title;
             content = p.content;
@@ -102,8 +106,6 @@ namespace ccxc_backend.Controllers.Game
             answer_type = p.answer_type;
         }
         public int pid { get; set; }
-        public int pgid { get; set; }
-        public string pg_name { get; set; }
         public int type { get; set; }
         public string title { get; set; }
         public string content { get; set; }

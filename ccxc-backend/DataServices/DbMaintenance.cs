@@ -21,6 +21,7 @@ namespace ccxc_backend.DataServices
         {
             DbBase.DbMaintenance.CreateDatabase();
 
+            new AdditionalAnswer(DbConnStr).InitTable();
             new Announcement(DbConnStr).InitTable();
             new AnswerLog(DbConnStr).InitTable();
             new Invite(DbConnStr).InitTable();

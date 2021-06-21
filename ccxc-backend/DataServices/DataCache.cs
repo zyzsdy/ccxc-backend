@@ -136,5 +136,10 @@ namespace ccxc_backend.DataServices
         {
             return $"/{CACHE_HEADER}/usersession/{uuid}";
         }
+
+        public string GetTempTicketKey(string uuid)
+        {
+            return $"/{CACHE_HEADER}/tempticket/{uuid}";
+        }
     }
 }

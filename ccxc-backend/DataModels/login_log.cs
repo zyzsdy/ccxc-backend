@@ -24,9 +24,9 @@ namespace ccxc_backend.DataModels
         public int uid { get; set; }
 
         /// <summary>
-        /// 登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限）
+        /// 登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限 6-二次验证成功 7-二次验证无Ticket 8-二次验证失败）
         /// </summary>
-        [DbColumn(ColumnDescription = "登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限）")]
+        [DbColumn(ColumnDescription = "登录状态（0-保留 1-登录成功 2-请求无效 3-用户名错误 4-密码错误 5-没有登录权限 6-二次验证成功 7-二次验证无Ticket 8-二次验证失败）")]
         public byte status { get; set; }
 
         [DbColumn(ColumnDescription = "IP")]

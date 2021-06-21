@@ -73,6 +73,93 @@ namespace ccxc_backend.Controllers.Users
             await response.OK();
         }
 
+        [HttpHandler("POST", "/puzzle-check-ticket")]
+        public async Task PuzzleCheckTicket(Request request, Response response)
+        {
+            var loginLogDb = DbFactory.Get<LoginLog>();
+            var loginLog = new login_log
+            {
+                create_time = DateTime.Now,
+                ip = request.ContextItems["RealIp"].ToString(),
+                proxy_ip = request.ContextItems["ForwardIp"].ToString(),
+                useragent = request.ContextItems["UserAgent"].ToString()
+            };
+
+            var requestJson = request.Json<CheckTicketRequest>();
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out var reason))
+            {
+                loginLog.status = 2;
+                loginLog.email = "";
+                await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
+
+                await response.BadRequest(reason);
+                return;
+            }
+            loginLog.email = $"Ticket: {requestJson.ticket}";
+
+            //尝试根据Ticket取回Token
+            var cache = DbFactory.GetCache();
+            var ticketKey = cache.GetTempTicketKey(requestJson.ticket);
+
+            var ticket = await cache.Get<PuzzleLoginTicketSession>(ticketKey);
+
+            if (ticket == null)
+            {
+                loginLog.status = 7;
+                await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
+
+                await response.BadRequest("验证失败，请返回首页检查登录状态。");
+                return;
+            }
+
+            var userToken = ticket.token;
+            if (string.IsNullOrEmpty(userToken))
+            {
+                loginLog.status = 7;
+                await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
+
+                await response.BadRequest("User-Token获取失败，请返回首页检查登录状态。");
+                return;
+            }
+
+            //销毁Ticket缓存
+            await cache.Delete(ticketKey);
+
+            //从User-Token中恢复Session
+            var sessionKey = cache.GetUserSessionKey(userToken);
+            var userSession = await cache.Get<UserSession>(sessionKey);
+
+            if (userSession == null || userSession.is_active != 1) //Session不存在
+            {
+                loginLog.status = 8;
+                await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
+
+                await response.Unauthorized("登录已经过期，请返回首页检查登录状态。");
+                return;
+            }
+
+            //返回给前端足以让前端恢复User-Token登录状态的信息
+            loginLog.status = 6;
+            loginLog.username = userSession.username;
+            loginLog.uid = userSession.uid;
+            await loginLogDb.SimpleDb.AsInsertable(loginLog).ExecuteCommandAsync();
+
+            await response.JsonResponse(200, new UserLoginResponse
+            {
+                status = 1,
+                user_login_info = new UserLoginResponse.UserLoginInfo
+                {
+                    uid = userSession.uid,
+                    username = userSession.username,
+                    roleid = userSession.roleid,
+                    token = userSession.token,
+                    sk = userSession.sk,
+                    etc = userSession.is_betaUser == 1 ? "52412" : "10000"
+                }
+            });
+        }
+
         [HttpHandler("POST", "/user-login")]
         public async Task UserLogin(Request request, Response response)
         {

@@ -106,11 +106,40 @@ namespace ccxc_backend.Controllers.Admin
             var pgDb = DbFactory.Get<PuzzleGroup>();
             var pgList = (await pgDb.SelectAllFromCache()).OrderBy(it => it.pgid);
 
+            var cache = DbFactory.GetCache();
+            var openedGroupKey = cache.GetDataKey("opened-groups");
+
+            var openedGroup = await cache.Get<int>(openedGroupKey);
+
             await response.JsonResponse(200, new GetPuzzleGroupResponse
             {
                 status = 1,
-                puzzle_group = pgList.ToList()
+                puzzle_group = pgList.ToList(),
+                avaliable_group_id = openedGroup
             });
+        }
+
+        [HttpHandler("POST", "/admin/set-avaliable-group-id")]
+        public async Task SetAvaliableGroupId(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<SetAvaliableGroupIdRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //修改缓存的值
+            var cache = DbFactory.GetCache();
+            var openedGroupKey = cache.GetDataKey("opened-groups");
+            await cache.Put(openedGroupKey, requestJson.value);
+
+            await response.OK();
         }
     }
 }

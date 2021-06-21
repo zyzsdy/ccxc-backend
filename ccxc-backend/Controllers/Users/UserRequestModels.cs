@@ -20,6 +20,12 @@ namespace ccxc_backend.Controllers.Users
         public string pass { get; set; }
     }
 
+    public class CheckTicketRequest
+    {
+        [Required(Message = "Ticket Error")]
+        public string ticket { get; set; }
+    }
+
     public class UserLoginRequest
     {
         [Required(Message = "E-mail不能为空")]

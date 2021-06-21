@@ -35,16 +35,6 @@ namespace ccxc_backend.DataModels
     public class SaveData
     {
         /// <summary>
-        /// 当前启用中的题目组
-        /// </summary>
-        public HashSet<int> NowOpenPuzzleGroups { get; set; } = new HashSet<int>();
-
-        /// <summary>
-        /// 已完成的题目组
-        /// </summary>
-        public HashSet<int> FinishedGroups { get; set; } = new HashSet<int>();
-
-        /// <summary>
         /// 已完成的题目
         /// </summary>
         public HashSet<int> FinishedPuzzles { get; set; } = new HashSet<int>();
@@ -55,24 +45,24 @@ namespace ccxc_backend.DataModels
         public HashSet<int> OpenedHidePuzzles { get; set; } = new HashSet<int>();
 
         /// <summary>
-        /// 已使用的开放组
-        /// </summary>
-        public HashSet<int> UsedOpenGroups { get; set; } = new HashSet<int>();
-
-        /// <summary>
-        /// 是否可以选择开放下一个组
-        /// </summary>
-        public bool IsOpenNextGroup { get; set; } = false;
-
-        /// <summary>
-        /// 是否开放FinalMeta准入
+        /// 是否开放PreFinal（条件：M1-M3全部回答正确时该值变为True，可展示M4）
         /// </summary>
         public bool IsOpenPreFinal { get; set; } = false;
 
         /// <summary>
-        /// 是否开放FinalMeta
+        /// 是否开放最终Meta区域（条件：M4回答正确时该值变为True，可展示M5-M8、FM）
         /// </summary>
-        public bool IsOpenFinalMeta { get; set; } = false;
+        public bool IsOpenFinalStage { get; set; } = false;
+
+        /// <summary>
+        /// 已完成的分组ID（只检查1~4）
+        /// </summary>
+        public HashSet<int> FinishedGroups { get; set; } = new HashSet<int>();
+
+        /// <summary>
+        /// 已兑换过的提示
+        /// </summary>
+        public Dictionary<int, HashSet<int>> OpenedHints { get; set; } = new Dictionary<int, HashSet<int>>();
     }
 
     public class Progress : MysqlClient<progress>

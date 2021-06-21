@@ -23,13 +23,13 @@ namespace ccxc_backend.Config
         public string ImageStorage { get; set; } = "D:/MyWorks/ccxc/static.ccxc.online/static/images";
 
         [OptionDescription("图片访问前缀")]
-        public string ImagePrefix { get; set; } = "https://cc.minyami.net/static/images/";
+        public string ImagePrefix { get; set; } = "https://static.ccbc11.test/static/images/";
 
         [OptionDescription("密码Hash种子1，请自由设置，设置后不要修改")]
-        public string PassHashKey1 { get; set; } = "TqCoLoRdYy,25zWAITn";
+        public string PassHashKey1 { get; set; } = "Minyami1C#(nhd9";
 
         [OptionDescription("密码Hash种子2，请自由设置，设置后不要修改")]
-        public string PassHashKey2 { get; set; } = "yYnjYy,qSJ;;";
+        public string PassHashKey2 { get; set; } = "H8d/*Mn9-In*&bf";
 
         [OptionDescription("用户Session有效期，单位秒，默认3600。")]
         public int UserSessionTimeout { get; set; } = 7200;
@@ -40,14 +40,14 @@ namespace ccxc_backend.Config
         [OptionDescription("默认罚时时间，单位小时，默认12.0")]
         public double PenaltyDefault { get; set; } = 12.0;
 
-        [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2020-08-07 20:00:00 +0800 aka. 1596801600000")]
-        public long StartTime { get; set; } = 1596801600000;
+        [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2021-08-06 20:00:00 +0800 aka. 1628251200000")]
+        public long StartTime { get; set; } = 1628251200000;
 
-        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-21 23:59:59 +0800 aka. 1598025599000")]
-        public long EndTime { get; set; } = 1598025599000;
+        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-27 23:59:59 +0800 aka. 1630066820000")]
+        public long EndTime { get; set; } = 1630066820000;
 
-        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-07 19:00:00 +0800 aka. 1596798000000")]
-        public long RegDeadline { get; set; } = 1596798000000;
+        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-06 20:00:00 +0800 aka. 1628251200000")]
+        public long RegDeadline { get; set; } = 1628251200000;
 
         [OptionDescription("至少完成多少个区域以后才可见PreFinalMeta")]
         public int ShowFinalGroups { get; set; } = 4;

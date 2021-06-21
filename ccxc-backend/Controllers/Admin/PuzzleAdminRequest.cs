@@ -23,6 +23,14 @@ namespace ccxc_backend.Controllers.Admin
         public string answer { get; set; }
         public string jump_keyword { get; set; }
         public string extend_content { get; set; }
+        public string extend_data { get; set; }
+
+        public string tips1 { get; set; }
+        public string tips2 { get; set; }
+        public string tips3 { get; set; }
+        public string tips1title { get; set; }
+        public string tips2title { get; set; }
+        public string tips3title { get; set; }
     }
 
     public class DeletePuzzleRequest
@@ -48,10 +56,28 @@ namespace ccxc_backend.Controllers.Admin
         public string answer { get; set; }
         public string jump_keyword { get; set; }
         public string extend_content { get; set; }
+        public string extend_data { get; set; }
+
+        public string tips1 { get; set; }
+        public string tips2 { get; set; }
+        public string tips3 { get; set; }
+        public string tips1title { get; set; }
+        public string tips2title { get; set; }
+        public string tips3title { get; set; }
     }
 
     public class GetPuzzleResponse : BasicResponse
     {
         public List<puzzle> puzzle { get; set; }
+    }
+
+    public class GetAdditionalAnswerResponse : BasicResponse
+    {
+        public List<additional_answer> additional_answer { get; set; }
+    }
+
+    public class DeleteAdditionalAnswerRequest
+    {
+        public int aaid { get; set; }
     }
 }

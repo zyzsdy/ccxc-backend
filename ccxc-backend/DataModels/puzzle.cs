@@ -19,6 +19,9 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "标题", IsNullable = true)]
         public string title { get; set; }
 
+        [DbColumn(ColumnDescription = "附加数据", IsNullable = true)]
+        public string extend_data { get; set; }
+
         [DbColumn(ColumnDescription = "题目描述", ColumnDataType = "TEXT", IsNullable = true)]
         public string content { get; set; }
 
@@ -43,8 +46,26 @@ namespace ccxc_backend.DataModels
         [DbColumn(ColumnDescription = "隐藏题目跳转关键字", IsNullable = true)]
         public string jump_keyword { get; set; }
 
-        [DbColumn(ColumnDescription = "附加内容（正解后显示）", IsNullable = true)]
+        [DbColumn(ColumnDescription = "附加内容（正解后显示）", ColumnDataType = "TEXT", IsNullable = true)]
         public string extend_content { get; set; }
+
+        [DbColumn(ColumnDescription = "提示1", ColumnDataType = "TEXT", IsNullable = true)]
+        public string tips1 { get; set; }
+
+        [DbColumn(ColumnDescription = "提示2", ColumnDataType = "TEXT", IsNullable = true)]
+        public string tips2 { get; set; }
+
+        [DbColumn(ColumnDescription = "提示3", ColumnDataType = "TEXT", IsNullable = true)]
+        public string tips3 { get; set; }
+
+        [DbColumn(ColumnDescription = "提示1标题", IsNullable = true)]
+        public string tips1title { get; set; }
+
+        [DbColumn(ColumnDescription = "提示2标题", IsNullable = true)]
+        public string tips2title { get; set; }
+
+        [DbColumn(ColumnDescription = "提示3标题", IsNullable = true)]
+        public string tips3title { get; set; }
     }
 
     public class Puzzle : MysqlClient<puzzle>

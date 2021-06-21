@@ -19,6 +19,11 @@ namespace ccxc_backend.Controllers.Admin
         public int pgid { get; set; }
     }
 
+    public class SetAvaliableGroupIdRequest
+    {
+        public int value { get; set; }
+    }
+
     public class EditPuzzleGroupRequest
     {
         public int pgid { get; set; }
@@ -32,5 +37,6 @@ namespace ccxc_backend.Controllers.Admin
     public class GetPuzzleGroupResponse : BasicResponse
     {
         public List<puzzle_group> puzzle_group { get; set; }
+        public int avaliable_group_id { get; set; }
     }
 }

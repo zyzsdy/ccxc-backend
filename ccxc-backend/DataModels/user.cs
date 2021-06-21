@@ -88,4 +88,9 @@ namespace ccxc_backend.DataModels
         /// </summary>
         public int is_betaUser { get; set; }
     }
+
+    public class PuzzleLoginTicketSession
+    {
+        public string token { get; set; }
+    }
 }
