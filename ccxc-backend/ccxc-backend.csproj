@@ -6,6 +6,7 @@
     <RootNamespace>ccxc_backend</RootNamespace>
     <Authors>Ted Zyzsdy</Authors>
     <Company>MeowSound Idols</Company>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

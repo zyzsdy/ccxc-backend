@@ -11,7 +11,7 @@ namespace Ccxc.Core.HttpServer.Middlewares
             {
                 //启用简易CORS
                 SetHeader(ctx.Response, "Access-Control-Allow-Origin", "*");
-                SetHeader(ctx.Response, "Server", "Ccxc-Server/1.1.0 (2020-7-1)");
+                SetHeader(ctx.Response, "Server", "Ccxc-Server/1.2.0 (2021-6-22)");
 
                 //处理OPTIONS请求
                 var method = ctx.Request.Method.ToUpper();
@@ -19,6 +19,7 @@ namespace Ccxc.Core.HttpServer.Middlewares
                 {
                     SetHeader(ctx.Response, "Access-Control-Allow-Method", "GET, POST, PUT, DELETE");
                     SetHeader(ctx.Response, "Access-Control-Allow-Headers", "Content-Type, User-Token, X-Requested-With, X-Auth-Token, Upload-Token");
+                    SetHeader(ctx.Response, "Access-Control-Max-Age", "600");
                     ctx.Response.StatusCode = 204;
                 }
                 else
