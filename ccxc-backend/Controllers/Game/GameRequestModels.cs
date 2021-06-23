@@ -93,6 +93,38 @@ namespace ccxc_backend.Controllers.Game
         public PuzzleView puzzle { get; set; }
     }
 
+    public class GetPuzzleTipsResponse : BasicResponse
+    {
+        public double tips_coin { get; set; }
+        public List<PuzzleTip> puzzle_tips { get; set; }
+    }
+
+    public class UnlockPuzzleTipRequest
+    {
+        public int pid { get; set; }
+        public int tip_num { get; set; }
+    }
+
+    public class PuzzleTip
+    {
+        public string tips_id { get; set; }
+
+        /// <summary>
+        /// 1/2/3
+        /// </summary>
+        public int tip_num { get; set; }
+
+        public string title { get; set; }
+        public int cost { get; set; }
+
+        /// <summary>
+        /// 0-未解锁 1-已解锁
+        /// </summary>
+        public int is_open { get; set; }
+        public string content { get; set; }
+
+    }
+
     public class PuzzleView
     {
         public PuzzleView(puzzle p)

@@ -38,5 +38,13 @@ namespace ccxc_backend.Controllers.Admin
     {
         public List<puzzle_group> puzzle_group { get; set; }
         public int avaliable_group_id { get; set; }
+        public int tips_cost_default { get; set; }
+        public int tips_cost_meta { get; set; }
+    }
+
+    public class SetTipsCostRequest
+    {
+        public int tips_cost_default { get; set; }
+        public int tips_cost_meta { get; set; }
     }
 }

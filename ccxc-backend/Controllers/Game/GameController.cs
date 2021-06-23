@@ -523,5 +523,334 @@ namespace ccxc_backend.Controllers.Game
                 desc = finalInfo
             });
         }
+
+        [HttpHandler("POST", "/play/get-tips")]
+        public async Task GetTips(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<GetPuzzleDetailRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            //题目组信息
+            var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
+            var puzzleGroupDict = (await puzzleGroupDb.SelectAllFromCache()).ToDictionary(it => it.pgid, it => it);
+
+            //取得题目详情
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var puzzleItem = (await puzzleDb.SelectAllFromCache()).FirstOrDefault(it => it.pid == requestJson.pid);
+
+            var isFinished = progressData.FinishedPuzzles.Contains(requestJson.pid);
+
+            if (puzzleItem == null)
+            {
+                await response.Unauthorized("不能访问您未打开的区域");
+                return;
+            }
+
+            //获取提示币价格
+            var cache = DbFactory.GetCache();
+            var tipsCostDefaultKey = cache.GetDataKey("tips-cost-default");
+            var tipsCostMetaKey = cache.GetDataKey("tips-cost-meta");
+
+            var tipsCostDefault = await cache.Get<int>(tipsCostDefaultKey);
+            var tipsCostMeta = await cache.Get<int>(tipsCostMetaKey);
+
+            if (tipsCostDefault == 0) tipsCostDefault = 2;
+            if (tipsCostMeta == 0) tipsCostMeta = 10;
+
+            //准备返回值
+            var tipOpened = new HashSet<int>();
+            if (progressData.OpenedHints.ContainsKey(puzzleItem.pid))
+            {
+                tipOpened = progressData.OpenedHints[puzzleItem.pid];
+            }
+            var puzzle_tips = new List<PuzzleTip>();
+            for (var i = 1; i <= 3; i++)
+            {
+                if (i == 1 && string.IsNullOrEmpty(puzzleItem.tips1title)) continue;
+                if (i == 2 && string.IsNullOrEmpty(puzzleItem.tips2title)) continue;
+                if (i == 3 && string.IsNullOrEmpty(puzzleItem.tips3title)) continue;
+
+
+                var puzzleTip = new PuzzleTip
+                {
+                    tips_id = $"{puzzleItem.pid}_{i}",
+                    tip_num = i,
+                    title = i switch
+                    {
+                        1 => puzzleItem.tips1title,
+                        2 => puzzleItem.tips2title,
+                        3 => puzzleItem.tips3title,
+                        _ => null
+                    },
+                    cost = puzzleItem.answer_type switch
+                    {
+                        1 => tipsCostMeta,
+                        2 => tipsCostMeta,
+                        3 => tipsCostMeta,
+                        _ => tipsCostDefault
+                    }
+                };
+
+                if (tipOpened.Contains(i))
+                {
+                    puzzleTip.is_open = 1;
+                    puzzleTip.content = i switch
+                    {
+                        1 => puzzleItem.tips1,
+                        2 => puzzleItem.tips2,
+                        3 => puzzleItem.tips3,
+                        _ => null
+                    };
+                }
+
+                puzzle_tips.Add(puzzleTip);
+            }
+
+            //计算剩余提示币数量
+            var tipsCoin = Math.Floor((DateTime.Now.AddHours(24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
+            if (tipsCoin < 0) tipsCoin = 0;
+
+            //检查是否可见
+            //prefinal区域需要存档已开放
+            if (puzzleItem.pgid == 4)  //pgid == 4, 中间存档开放
+            {
+                if (!progressData.IsOpenPreFinal)
+                {
+                    await response.Unauthorized("不能访问您未打开的区域");
+                    return;
+                }
+
+                var prePuzzleRes = new GetPuzzleTipsResponse
+                {
+                    status = 1,
+                    tips_coin = tipsCoin,
+                    puzzle_tips = puzzle_tips
+                };
+                await response.JsonResponse(200, prePuzzleRes);
+                return;
+            }
+
+            //final区域需要验证存档已开放
+            if (puzzleItem.pgid == 5) //pgid == 5, 最终部分开放
+            {
+                if (!progressData.IsOpenFinalStage)
+                {
+                    await response.Unauthorized("不能访问您未打开的区域");
+                    return;
+                }
+
+                var fmPuzzleRes = new GetPuzzleTipsResponse
+                {
+                    status = 1,
+                    tips_coin = tipsCoin,
+                    puzzle_tips = puzzle_tips
+                };
+                await response.JsonResponse(200, fmPuzzleRes);
+                return;
+            }
+
+            //取得当前题目组
+            if (!puzzleGroupDict.ContainsKey(puzzleItem.pgid))
+            {
+                await response.BadRequest("当前题目不属于任何有效的题目组，无法打开。");
+                return;
+            }
+            var thisPuzzleGroup = puzzleGroupDict[puzzleItem.pgid];
+            if (thisPuzzleGroup == null)
+            {
+                await response.BadRequest("当前题目不属于任何有效的题目组，无法打开。code: 2");
+                return;
+            }
+            //  隐藏区域需已获得条件开放
+            if (thisPuzzleGroup.is_hide == 1)
+            {
+                if (!progressData.OpenedHidePuzzles.Contains(puzzleItem.pid))
+                {
+                    await response.Unauthorized("不能访问您未打开的区域; Eno=3");
+                    return;
+                }
+            }
+
+
+            //取得普通小题已经打开的区域（1~3）
+            var openedGroupKey = cache.GetDataKey("opened-groups");
+
+            var openedGroup = await cache.Get<int>(openedGroupKey);
+
+            if (puzzleItem.pgid > openedGroup)
+            {
+                await response.Unauthorized("不能访问您未打开的区域");
+                return;
+            }
+
+            var res = new GetPuzzleTipsResponse
+            {
+                status = 1,
+                tips_coin = tipsCoin,
+                puzzle_tips = puzzle_tips
+            };
+
+            await response.JsonResponse(200, res);
+        }
+
+        [HttpHandler("POST", "/play/unlock-tips")]
+        public async Task UnlockTips(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<UnlockPuzzleTipRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            if (requestJson.tip_num < 1 || requestJson.tip_num > 3)
+            {
+                await response.BadRequest("参数不正确");
+                return;
+            }
+
+            //取得题目详情
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var puzzleItem = (await puzzleDb.SelectAllFromCache()).FirstOrDefault(it => it.pid == requestJson.pid);
+
+            var isFinished = progressData.FinishedPuzzles.Contains(requestJson.pid);
+
+            if (puzzleItem == null)
+            {
+                await response.Unauthorized("不能访问您未打开的区域");
+                return;
+            }
+
+            //获取提示币价格
+            var cache = DbFactory.GetCache();
+            var tipsCostDefaultKey = cache.GetDataKey("tips-cost-default");
+            var tipsCostMetaKey = cache.GetDataKey("tips-cost-meta");
+
+            var tipsCostDefault = await cache.Get<int>(tipsCostDefaultKey);
+            var tipsCostMeta = await cache.Get<int>(tipsCostMetaKey);
+
+            if (tipsCostDefault == 0) tipsCostDefault = 2;
+            if (tipsCostMeta == 0) tipsCostMeta = 10;
+
+
+            var cost = puzzleItem.answer_type switch
+            {
+                1 => tipsCostMeta,
+                2 => tipsCostMeta,
+                3 => tipsCostMeta,
+                _ => tipsCostDefault
+            };
+
+            //计算剩余提示币数量
+            var tipsCoin = Math.Floor((DateTime.Now.AddHours(24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
+
+            if (tipsCoin < cost)
+            {
+                await response.BadRequest("没有足够提示币");
+                return;
+            }
+
+            //记录指定提示为open状态
+            if (!progress.data.OpenedHints.ContainsKey(requestJson.pid))
+            {
+                progress.data.OpenedHints.Add(requestJson.pid, new HashSet<int>());
+            }
+            progress.data.OpenedHints[requestJson.pid].Add(requestJson.tip_num);
+
+            //增加已用提示币的值
+            progress.penalty += cost;
+
+
+            //写入日志
+            var answerLogDb = DbFactory.Get<AnswerLog>();
+            var answerLog = new answer_log
+            {
+                create_time = DateTime.Now,
+                uid = userSession.uid,
+                gid = gid,
+                pid = requestJson.pid,
+                answer = $"解锁提示{requestJson.tip_num}",
+                status = 7
+            };
+            await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
+
+            //回写进度
+            await progressDb.SimpleDb.AsUpdateable(progress).IgnoreColumns(it => new { it.finish_time }).ExecuteCommandAsync();
+
+            //返回
+            await response.OK();
+        }
     }
 }

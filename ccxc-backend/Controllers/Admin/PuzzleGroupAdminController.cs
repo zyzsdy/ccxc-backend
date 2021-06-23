@@ -111,11 +111,20 @@ namespace ccxc_backend.Controllers.Admin
 
             var openedGroup = await cache.Get<int>(openedGroupKey);
 
+            //获取提示币价格
+            var tipsCostDefaultKey = cache.GetDataKey("tips-cost-default");
+            var tipsCostMetaKey = cache.GetDataKey("tips-cost-meta");
+
+            var tipsCostDefault = await cache.Get<int>(tipsCostDefaultKey);
+            var tipsCostMeta = await cache.Get<int>(tipsCostMetaKey);
+
             await response.JsonResponse(200, new GetPuzzleGroupResponse
             {
                 status = 1,
                 puzzle_group = pgList.ToList(),
-                avaliable_group_id = openedGroup
+                avaliable_group_id = openedGroup,
+                tips_cost_default = tipsCostDefault,
+                tips_cost_meta = tipsCostMeta
             });
         }
 
@@ -138,6 +147,33 @@ namespace ccxc_backend.Controllers.Admin
             var cache = DbFactory.GetCache();
             var openedGroupKey = cache.GetDataKey("opened-groups");
             await cache.Put(openedGroupKey, requestJson.value);
+
+            await response.OK();
+        }
+
+        [HttpHandler("POST", "/admin/update-tips-cost")]
+        public async Task GetTipsCost(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
+            if (userSession == null) return;
+
+            var requestJson = request.Json<SetTipsCostRequest>();
+
+            //判断请求是否有效
+            if (!Validation.Valid(requestJson, out string reason))
+            {
+                await response.BadRequest(reason);
+                return;
+            }
+
+            var cache = DbFactory.GetCache();
+
+            //修改提示币价格
+            var tipsCostDefaultKey = cache.GetDataKey("tips-cost-default");
+            var tipsCostMetaKey = cache.GetDataKey("tips-cost-meta");
+
+            await cache.Put(tipsCostDefaultKey, requestJson.tips_cost_default);
+            await cache.Put(tipsCostMetaKey, requestJson.tips_cost_meta);
 
             await response.OK();
         }

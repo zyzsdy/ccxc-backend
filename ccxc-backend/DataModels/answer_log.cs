@@ -27,7 +27,7 @@ namespace ccxc_backend.DataModels
         public string answer { get; set; }
 
         /// <summary>
-        /// 答案状态（0-保留 1-正确 2-答案错误 3-在冷却中而未判断 4-该题目不可见而无法回答 5-发生存档错误而未判定 6-符合隐藏关键字而跳转）
+        /// 答案状态（0-保留 1-正确 2-答案错误 3-在冷却中而未判断 4-该题目不可见而无法回答 5-发生存档错误而未判定 6-符合隐藏关键字而跳转 7-解锁提示）
         /// </summary>
         [DbColumn(ColumnDescription = "答案状态（0-保留 1-正确 2-答案错误 3-在冷却中而未判断 4-该题目不可见而无法回答 5-发生存档错误而未判定 6-符合隐藏关键字而跳转）", IndexGroupNameList = new string[] { "index_gid_pid" })]
         public byte status { get; set; }
