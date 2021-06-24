@@ -286,6 +286,8 @@ namespace ccxc_backend.Controllers.Game
                 progress.score += timeScore * puzzleFactor; //累加本题分数
             }
 
+            var extendFlag = string.IsNullOrEmpty(puzzleItem.extend_content) ? 0 : 16; //如果存在扩展，extend_flag应为16，此时前端需要刷新，如果需要跳转final，extend_flag应为1。否则应为0。
+
             //本题目标记为已完成
             progress.data.FinishedPuzzles.Add(puzzleItem.pid);
 
@@ -296,6 +298,7 @@ namespace ccxc_backend.Controllers.Game
             {
                 progress.is_finish = 1;
                 progress.finish_time = DateTime.Now;
+                extendFlag = 1;
 
                 await progressDb.SimpleDb.AsUpdateable(progress).ExecuteCommandAsync();
             }
@@ -309,7 +312,7 @@ namespace ccxc_backend.Controllers.Game
             {
                 status = 1,
                 answer_status = 1,
-                extend_flag = string.IsNullOrEmpty(puzzleItem.extend_content) ? 0 : 16,
+                extend_flag = extendFlag,
                 message = successMessage
             });
         }
