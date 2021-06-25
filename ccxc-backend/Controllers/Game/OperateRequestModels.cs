@@ -18,8 +18,9 @@ namespace ccxc_backend.Controllers.Game
     public class AnswerResponse : BasicResponse
     {
         public int answer_status { get; set; }
-
-        //0-什么都不做 16-重新载入页面
+        /// <summary>
+        /// 0-什么都不做 1-跳转到final 16-重新载入页面
+        /// </summary>
         public int extend_flag { get; set; }
         public double cooldown_remain_seconds { get; set; }
     }

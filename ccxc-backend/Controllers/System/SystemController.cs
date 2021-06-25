@@ -29,27 +29,34 @@ namespace ccxc_backend.Controllers.System
             var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
             if (userSession == null) return;
 
-            var newMessage = 0; //新消息数目
-
-            //取得该用户GID
-            var groupBindDb = DbFactory.Get<UserGroupBind>();
-            var groupBindList = await groupBindDb.SelectAllFromCache();
-
-            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
-            if (groupBindItem != null)
+            await response.JsonResponse(200, new
             {
-                var gid = groupBindItem.gid;
-                var messageDb = DbFactory.Get<Message>();
-                newMessage = await messageDb.SimpleDb.AsQueryable()
-                    .Where(it => it.gid == gid && it.direction == 1 && it.is_read == 0).CountAsync();
-            }
+                status = 1,
+            });
+        }
+
+        [HttpHandler("POST", "/heartbeat-puzzle")]
+        public async Task HeartBeatPuzzle(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Normal);
+            if (userSession == null) return;
+
+            var cache = DbFactory.GetCache();
+            var maxIdKey = "/ccxc-backend/datacache/last_announcement_id";
+            var maxId = await cache.Get<int>(maxIdKey);
+
+            var userReadKey = cache.GetCacheKey($"max_read_anno_id_for_{userSession.uid}");
+            var userRead = await cache.Get<int>(userReadKey);
+
+            var unread = maxId - userRead;
 
             await response.JsonResponse(200, new
             {
                 status = 1,
-                new_message = newMessage
+                unread
             });
         }
+
 
         [HttpHandler("POST", "/get-scoreboard-info")]
         public async Task GetScoreBoardInfo(Request request, Response response)
@@ -79,8 +86,7 @@ namespace ccxc_backend.Controllers.System
                     {
                         r.total_time =
                             (progress.finish_time -
-                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours +
-                            progress.penalty;
+                             Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours;
                     }
 
                     r.score = progress.score;

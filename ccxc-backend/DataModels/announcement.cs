@@ -2,6 +2,7 @@
 using Ccxc.Core.Utils.ExtensionFunctions;
 using Newtonsoft.Json;
 using System;
+using System.Threading.Tasks;
 
 namespace ccxc_backend.DataModels
 {
@@ -27,6 +28,26 @@ namespace ccxc_backend.DataModels
         public Announcement(string connStr) : base(connStr)
         {
 
+        }
+
+        public async Task<int> NewAnnouncement(string content)
+        {
+            var now = DateTime.Now;
+
+            var newAnnouncement = new announcement
+            {
+                create_time = now,
+                update_time = now,
+                content = content,
+            };
+
+            var aid = await SimpleDb.AsInsertable(newAnnouncement).ExecuteReturnIdentityAsync();
+            await InvalidateCache();
+
+            var key = "/ccxc-backend/datacache/last_announcement_id";
+            await Cache.Put(key, aid);
+
+            return aid;
         }
     }
 }

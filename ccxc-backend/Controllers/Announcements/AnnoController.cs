@@ -17,8 +17,6 @@ namespace ccxc_backend.Controllers.Announcements
         [HttpHandler("POST", "/admin/add-announcement")]
         public async Task AddAnnouncement(Request request, Response response)
         {
-            var now = DateTime.Now;
-
             var userSession = await CheckAuth.Check(request, response, AuthLevel.Organizer);
             if (userSession == null) return;
 
@@ -33,15 +31,7 @@ namespace ccxc_backend.Controllers.Announcements
 
             //插入新公告
             var annoDb = DbFactory.Get<Announcement>();
-            var newAnnouncement = new announcement
-            {
-                create_time = now,
-                update_time = now,
-                content = requestJson.content
-            };
-
-            await annoDb.SimpleDb.AsInsertable(newAnnouncement).ExecuteCommandAsync();
-            await annoDb.InvalidateCache();
+            await annoDb.NewAnnouncement(requestJson.content);
 
             await response.OK();
         }
@@ -113,6 +103,27 @@ namespace ccxc_backend.Controllers.Announcements
 
             var annoDb = DbFactory.Get<Announcement>();
             IEnumerable<announcement> annoList = await annoDb.SelectAllFromCache();
+
+            //尝试取出用户Session
+            IDictionary<string, object> headers = request.Header;
+            if (headers.ContainsKey("user-token"))
+            {
+                var token = headers["user-token"].ToString();
+
+                var cache = DbFactory.GetCache();
+                var sessionKey = cache.GetUserSessionKey(token);
+                var userSession = await cache.Get<UserSession>(sessionKey);
+
+                if (userSession != null)
+                {
+                    var uid = userSession.uid;
+
+                    //更新用户阅读过的最后一篇公告ID
+                    var maxReadAnnoKey = cache.GetCacheKey($"max_read_anno_id_for_{uid}");
+                    await cache.Put(maxReadAnnoKey, annoList.Max(x => x.aid));
+                }
+            }
+
 
             if(requestJson.aids != null && requestJson.aids.Count > 0)
             {
