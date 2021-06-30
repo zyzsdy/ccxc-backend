@@ -297,6 +297,84 @@ namespace ccxc_backend.Controllers.Game
             await response.JsonResponse(200, res);
         }
 
+        [HttpHandler("POST", "/play/get-meta-list")]
+        public async Task GetMetaList(Request request, Response response)
+        {
+            var userSession = await CheckAuth.Check(request, response, AuthLevel.Member, true);
+            if (userSession == null) return;
+
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem == null)
+            {
+                await response.BadRequest("未确定组队？");
+                return;
+            }
+
+            var gid = groupBindItem.gid;
+
+            //取得进度
+            var progressDb = DbFactory.Get<Progress>();
+            var progress = await progressDb.SimpleDb.AsQueryable().Where(it => it.gid == gid).FirstAsync();
+            if (progress == null)
+            {
+                await response.BadRequest("没有进度，请返回首页重新开始。");
+                return;
+            }
+
+            var progressData = progress.data;
+            if (progressData == null)
+            {
+                await response.BadRequest("未找到可用存档，请联系管理员。");
+                return;
+            }
+
+            var cache = DbFactory.GetCache();
+            var openedGroupKey = cache.GetDataKey("opened-groups");
+
+            var openedGroup = await cache.Get<int>(openedGroupKey);
+            if (openedGroup < 1) openedGroup = 1;
+
+            var puzzleDb = DbFactory.Get<Puzzle>();
+            var avaliablePuzzleList = await puzzleDb.SimpleDb.AsQueryable().Where(it => it.pgid <= openedGroup && it.answer_type == 1).ToListAsync();
+
+
+            if (progressData.IsOpenPreFinal)
+            {
+                var addList = await puzzleDb.SimpleDb.AsQueryable().Where(it => it.pgid == 4).ToListAsync();
+                avaliablePuzzleList.AddRange(addList);
+            }
+
+            if (progressData.IsOpenFinalStage)
+            {
+                var addList = await puzzleDb.SimpleDb.AsQueryable().Where(it => it.pgid == 5).ToListAsync();
+                avaliablePuzzleList.AddRange(addList);
+            }
+
+
+            var simpleList = avaliablePuzzleList.Select(it =>
+            {
+                var r = new SimplePuzzle
+                {
+                    pid = it.pid,
+                    title = it.title,
+                    is_finished = progressData.FinishedPuzzles.Contains(it.pid) ? 1 : 0
+                };
+
+                return r;
+            }).ToList();
+
+            var res = new GetClueMatrixResponse
+            {
+                status = 1,
+                simple_puzzles = simpleList
+            };
+            await response.JsonResponse(200, res);
+        }
+
         [HttpHandler("POST", "/play/get-puzzle-detail")]
         public async Task GetPuzzleDetail(Request request, Response response)
         {
