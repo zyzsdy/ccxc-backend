@@ -167,7 +167,7 @@ namespace ccxc_backend.Controllers.Admin
                 if (progressDict.ContainsKey(it.gid))
                 {
                     var progress = progressDict[it.gid];
-                    r.finished_puzzle = progress.data.FinishedPuzzles.ToList();
+                    r.finished_puzzle_count = progress.data.FinishedPuzzles.Count();
                     r.score = progress.score;
                     r.is_finish = progress.is_finish;
                     r.finish_time = progress.finish_time;

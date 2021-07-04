@@ -1,6 +1,7 @@
 ﻿using Ccxc.Core.HttpServer;
 using ccxc_backend.DataModels;
 using ccxc_backend.DataServices;
+using Newtonsoft.Json;
 using SqlSugar;
 using System;
 using System.Collections.Generic;
@@ -56,6 +57,12 @@ namespace ccxc_backend.Controllers.Game
 
             var gid = groupBindItem.gid;
             answerLog.gid = gid;
+
+            //取得队伍名称
+            var groupDb = DbFactory.Get<UserGroup>();
+            var groupList = await groupDb.SelectAllFromCache();
+
+            var groupItem = groupList.FirstOrDefault(it => it.gid == gid);
 
             //取得进度
             var progressDb = DbFactory.Get<Progress>();
@@ -222,6 +229,46 @@ namespace ccxc_backend.Controllers.Game
             //答案正确
             answerLog.status = 1;
             await answerLogDb.SimpleDb.AsInsertable(answerLog).ExecuteCommandAsync();
+
+
+            //计算是否为首杀
+            var tempAnnoDb = DbFactory.Get<TempAnno>();
+            var c = await tempAnnoDb.SimpleDb.AsQueryable().Where(x => x.pid == puzzleItem.pid).CountAsync();
+            if (c == 0)
+            {
+                //触发首杀逻辑
+                var extraInfo = "";
+                //判断是否可以全局解锁新区域
+                if (puzzleItem.answer_type == 1 && puzzleItem.pgid < 3) //只有pgid是1和2的分区meta可以触发
+                {
+                    if (openedGroup < puzzleItem.pgid + 1)
+                    {
+                        await cache.Put(openedGroupKey, puzzleItem.pgid + 1);
+                        extraInfo = @"**<span style=""color: red"">【在他们出色的解开了谜题的同时，有新的线索出现了。】</span>**";
+                    }
+                }
+
+                //写入首杀公告
+                var newTempAnno = new temp_anno
+                {
+                    pid = puzzleItem.pid,
+                    create_time = DateTime.Now,
+                    content = $"【首杀公告】恭喜队伍 {groupItem?.groupname ?? ""} 于 {DateTime.Now:yyyy-MM-dd HH:mm:ss} 首个解出了题目 **#{puzzleItem.title}** 。{extraInfo}",
+                    is_pub = 0
+                };
+
+                try
+                {
+                    await tempAnnoDb.SimpleDb.AsInsertable(newTempAnno).ExecuteCommandAsync();
+                }
+                catch (Exception e)
+                {
+                    Ccxc.Core.Utils.Logger.Error($"首杀数据写入失败，原因可能是：{e.Message}，附完整数据：{JsonConvert.SerializeObject(newTempAnno)}，详细信息：" + e.ToString());
+                    //写入不成功可能是产生了竞争或者主键已存在。总之这里忽略掉这个异常。
+                }
+            }
+
+
 
             //==============更新存档=====================
 

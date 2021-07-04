@@ -34,4 +34,14 @@ namespace ccxc_backend.Controllers.Announcements
     {
         public List<announcement> announcements { get; set; }
     }
+
+    public class GetTempAnnoResponse : BasicResponse
+    {
+        public List<temp_anno> temp_anno { get; set; }
+    }
+
+    public class ConvertTempAnnoRequest
+    {
+        public int pid { get; set; }
+    }
 }

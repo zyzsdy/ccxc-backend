@@ -30,6 +30,7 @@ namespace ccxc_backend.DataServices
             new Progress(DbConnStr).InitTable();
             new Puzzle(DbConnStr).InitTable();
             new PuzzleGroup(DbConnStr).InitTable();
+            new TempAnno(DbConnStr).InitTable();
             new User(DbConnStr).InitTable();
             new UserGroup(DbConnStr).InitTable();
             new UserGroupBind(DbConnStr).InitTable();

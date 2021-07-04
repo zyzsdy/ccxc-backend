@@ -119,8 +119,11 @@ namespace ccxc_backend.Controllers.Announcements
                     var uid = userSession.uid;
 
                     //更新用户阅读过的最后一篇公告ID
-                    var maxReadAnnoKey = cache.GetCacheKey($"max_read_anno_id_for_{uid}");
-                    await cache.Put(maxReadAnnoKey, annoList.Max(x => x.aid));
+                    if (annoList?.Count() > 0)
+                    {
+                        var maxReadAnnoKey = cache.GetCacheKey($"max_read_anno_id_for_{uid}");
+                        await cache.Put(maxReadAnnoKey, annoList.Max(x => x.aid));
+                    }
                 }
             }
 
