@@ -357,10 +357,21 @@ namespace ccxc_backend.Controllers.Game
 
             var simpleList = avaliablePuzzleList.Select(it =>
             {
+                var sectionType = 0;
+                if (it.answer_type == 2 || it.answer_type == 3)
+                {
+                    sectionType = 1;
+                }
+                if (it.pgid == 4)
+                {
+                    sectionType = 1;
+                }
+
                 var r = new SimplePuzzle
                 {
                     pid = it.pid,
                     title = it.title,
+                    x = sectionType,
                     is_finished = progressData.FinishedPuzzles.Contains(it.pid) ? 1 : 0
                 };
 
