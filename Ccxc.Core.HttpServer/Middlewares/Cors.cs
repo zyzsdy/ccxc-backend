@@ -18,7 +18,7 @@ namespace Ccxc.Core.HttpServer.Middlewares
                 if (method == "OPTIONS")
                 {
                     SetHeader(ctx.Response, "Access-Control-Allow-Method", "GET, POST, PUT, DELETE");
-                    SetHeader(ctx.Response, "Access-Control-Allow-Headers", "Content-Type, User-Token, X-Requested-With, X-Auth-Token, Upload-Token");
+                    SetHeader(ctx.Response, "Access-Control-Allow-Headers", "Content-Type, User-Token, X-Requested-With, X-Auth-Token, Upload-Token, X-Captcha-Nonce");
                     SetHeader(ctx.Response, "Access-Control-Max-Age", "600");
                     ctx.Response.StatusCode = 204;
                 }

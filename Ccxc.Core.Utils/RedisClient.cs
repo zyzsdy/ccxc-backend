@@ -266,5 +266,64 @@ namespace Ccxc.Core.Utils
 
             return res;
         }
+
+        /// <summary>
+        /// 流量控制
+        /// </summary>
+        /// <param name="key">Redis存储键名</param>
+        /// <param name="max_permits">最大授权令牌数量</param>
+        /// <param name="current_time">当前时间戳（毫秒）</param>
+        /// <param name="rate_per_day">每日恢复的令牌数量（每日最大流控值）</param>
+        /// <param name="request_permits">本次请求的令牌数量</param>
+        /// <returns></returns>
+        public async Task<int> RateLimiter(string key, int max_permits, long current_time, int rate_per_day, int request_permits)
+        {
+            try
+            {
+
+
+                var result = await RedisDb?.ScriptEvaluateAsync(LuaScript.Prepare(@"
+local para_key = @key
+local para_max_permits = @max_permits
+local para_current_time = @current_time
+local para_rate_per_day = @rate_per_day
+local para_request_permits = @request_permits
+local rate_limit_info = redis.pcall(""HMGET"", para_key, ""last_update_time"", ""curr_permits"")
+local last_update_time = tonumber(rate_limit_info[1])
+local curr_permits = tonumber(rate_limit_info[2])
+
+--- 初始化令牌桶为全满
+local available_permits = para_max_permits
+
+--- 读取上次更新时间，添加令牌桶
+if (type(last_update_time) ~= ""boolean"" and last_update_time ~= false and last_update_time ~= nil) then
+    local recovered_permits = math.floor(((para_current_time - last_update_time) / 86400000) * para_rate_per_day)
+    local expect_curr_permits = recovered_permits + curr_permits
+    available_permits = math.min(expect_curr_permits, para_max_permits)
+end
+
+--- 扣减令牌数量
+local result = 0
+if (available_permits - para_request_permits >= 0) then
+    result = para_request_permits
+    available_permits = available_permits - para_request_permits
+end
+
+--- 回写并写入到期时间
+redis.pcall(""HMSET"", para_key, ""curr_permits"", available_permits, ""last_update_time"", para_current_time)
+redis.pcall(""PEXPIRE"", para_key, math.ceil(((para_max_permits - available_permits) / (para_rate_per_day / 86400000)) + 10000))
+
+return result
+                "), new { key, max_permits, current_time, rate_per_day, request_permits });
+                var sResult = (string)result;
+                int.TryParse(sResult, out int res);
+                return res;
+            }
+            catch (RedisConnectionException e)
+            {
+                Logger.Error("Redis连接断开。" + e.ToString());
+                throw new Exception("Redis连接失败" + e.Message, e);
+            }
+        }
     }
 }

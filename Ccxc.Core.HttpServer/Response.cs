@@ -39,9 +39,9 @@ namespace Ccxc.Core.HttpServer
             return SimpleResponse(RawResponse, statusCode, responseContent, responseType);
         }
 
-        public Task BinaryResponse(int statusCode, byte[] responseContent)
+        public Task BinaryResponse(int statusCode, byte[] responseContent, string responseType = "application/octet-stream")
         {
-            RawResponse.ContentType = "application/octet-stream";
+            RawResponse.ContentType = responseType;
             RawResponse.StatusCode = statusCode;
             return RawResponse.Body.WriteAsync(responseContent, 0, responseContent.Length);
         }

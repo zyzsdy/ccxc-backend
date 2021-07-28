@@ -152,4 +152,17 @@ namespace ccxc_backend.Controllers.Users
             }
         }
     }
+
+    public class EmailResetPassRequest
+    {
+        [Required(Message = "E-mail不能为空")]
+        public string email { get; set; }
+
+        [Required(Message = "验证码不能为空")]
+        public string code { get; set; }
+
+        public string nonce { get; set; }
+
+        public long userid { get; set; }
+    }
 }

@@ -20,6 +20,14 @@ namespace ccxc_backend.DataServices
             RedisDatabase = redisDatabase;
         }
 
+        public RedisClient Client
+        {
+            get
+            {
+                return new RedisClient(RedisConnStr, RedisDatabase);
+            }
+        }
+
         public Task Put(string key, object value, long timeoutMilliseconds = -1)
         {
             var redis = new RedisClient(RedisConnStr, RedisDatabase);
