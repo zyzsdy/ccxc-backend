@@ -2,10 +2,10 @@
 Description=Ccxc Backend
 
 [Service]
-ExecStart=/var/ccxc-backend/ccxc-backend
+ExecStart=/var/www/ccxc-backend/ccxc-backend
 Restart=always
 Environment=PATH=/usr/bin:/usr/local/bin:/usr/local/node/bin
-WorkingDirectory=/var/ccxc-backend/
+WorkingDirectory=/var/www/ccxc-backend/
 
 [Install]
 WantedBy=multi-user.target

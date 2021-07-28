@@ -43,17 +43,23 @@ namespace ccxc_backend.Config
         [OptionDescription("开赛时间，Unix时间戳（毫秒），默认为2021-08-06 20:00:00 +0800 aka. 1628251200000")]
         public long StartTime { get; set; } = 1628251200000;
 
-        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-27 23:59:59 +0800 aka. 1630066820000")]
-        public long EndTime { get; set; } = 1630066820000;
+        [OptionDescription("完赛时间，Unix时间戳（毫秒），默认为2020-08-22 20:00:00 +0800 aka. 1629633600000")]
+        public long EndTime { get; set; } = 1629633600000;
 
-        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-06 20:00:00 +0800 aka. 1628251200000")]
-        public long RegDeadline { get; set; } = 1628251200000;
+        [OptionDescription("报名截止日期，0为不限制，Unix时间戳（毫秒），默认为2020-08-06 19:00:00 +0800 aka. 1628247600000")]
+        public long RegDeadline { get; set; } = 1628247600000;
 
         [OptionDescription("至少完成多少个区域以后才可见PreFinalMeta")]
         public int ShowFinalGroups { get; set; } = 4;
 
         [OptionDescription("至少打开多少个区域以后才可见PreFinalMeta")]
         public int ShowFinalOpenGroups { get; set; } = 7;
+
+        [OptionDescription("阿里云邮件推送服务Access Key")]
+        public string AliyunDmAccessKey { get; set; } = "";
+
+        [OptionDescription("阿里云邮件推送服务Access Secret")]
+        public string AliyunDmAccessSecret { get; set; } = "";
 
         public static Config Options { get; set; } = SystemOption.GetOption<Config>("Config/CcxcConfig.xml");
     }

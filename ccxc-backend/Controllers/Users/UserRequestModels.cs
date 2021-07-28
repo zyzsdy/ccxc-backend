@@ -165,4 +165,24 @@ namespace ccxc_backend.Controllers.Users
 
         public long userid { get; set; }
     }
+
+    public class ResetPassCheckTokenRequest
+    {
+        [Required(Message = "Token不能为空")]
+        public string token { get; set; }
+    }
+
+    public class ResetPassCheckTokenResponse : BasicResponse
+    {
+        public string email { get; set; }
+    }
+
+    public class ResetPasswordRequest
+    {
+        [Required(Message = "Token不能为空")]
+        public string token { get; set; }
+
+        [Required(Message = "新密码不能为空")]
+        public string pass { get; set; }
+    }
 }
