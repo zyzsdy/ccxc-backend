@@ -151,5 +151,6 @@ namespace ccxc_backend.Controllers.Game
     public class GetFinalInfoResponse : BasicResponse
     {
         public string desc { get; set; }
+        public int rank_temp { get; set; }
     }
 }

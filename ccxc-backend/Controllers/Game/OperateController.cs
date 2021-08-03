@@ -295,7 +295,7 @@ namespace ccxc_backend.Controllers.Game
 
             if (!string.IsNullOrEmpty(puzzleItem.extend_content))
             {
-                successMessage += " 好像发现了什么线索（请注意题目页面多出来的新内容）。";
+                successMessage += " 由于你的努力，剧情推进了一步……";
             }
 
             //计算分数

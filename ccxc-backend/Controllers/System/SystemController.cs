@@ -50,10 +50,27 @@ namespace ccxc_backend.Controllers.System
 
             var unread = maxId - userRead;
 
+            var newMessage = 0; //新消息数目
+            //取得该用户GID
+            var groupBindDb = DbFactory.Get<UserGroupBind>();
+            var groupBindList = await groupBindDb.SelectAllFromCache();
+
+            var groupBindItem = groupBindList.FirstOrDefault(it => it.uid == userSession.uid);
+            if (groupBindItem != null)
+            {
+                var gid = groupBindItem.gid;
+                var messageDb = DbFactory.Get<Message>();
+                newMessage = await messageDb.SimpleDb.AsQueryable()
+                    .Where(it => it.gid == gid && it.direction == 1 && it.is_read == 0).CountAsync();
+            }
+
+
+
             await response.JsonResponse(200, new
             {
                 status = 1,
-                unread
+                unread,
+                new_message = newMessage
             });
         }
 

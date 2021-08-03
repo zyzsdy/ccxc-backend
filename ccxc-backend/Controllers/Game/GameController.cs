@@ -590,11 +590,17 @@ namespace ccxc_backend.Controllers.Game
             var puzzleItem = (await puzzleDb.SelectAllFromCache()).First(it => it.answer_type == 3);
 
             var finalInfo = "";
+            var rankTemp = 0;
 
             if (puzzleItem != null)
             {
+                //确定该队已完成Final
                 if (progressData.FinishedPuzzles.Contains(puzzleItem.pid))
                 {
+                    var progressList = await progressDb.SimpleDb.AsQueryable().Where(x => x.is_finish == 1).OrderBy(x => x.finish_time, SqlSugar.OrderByType.Asc).ToListAsync();
+                    rankTemp = progressList.FindIndex(it => it.gid == gid) + 1;
+
+
                     //题目组信息
                     var puzzleGroupDb = DbFactory.Get<PuzzleGroup>();
                     var finalGroup = (await puzzleGroupDb.SelectAllFromCache()).First(it => it.pgid == puzzleItem.pgid);
@@ -609,7 +615,8 @@ namespace ccxc_backend.Controllers.Game
             await response.JsonResponse(200, new GetFinalInfoResponse
             {
                 status = 1,
-                desc = finalInfo
+                desc = finalInfo,
+                rank_temp = rankTemp
             });
         }
 
@@ -734,7 +741,7 @@ namespace ccxc_backend.Controllers.Game
             }
 
             //计算剩余提示币数量
-            var tipsCoin = Math.Floor((DateTime.Now.AddHours(24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
+            var tipsCoin = Math.Floor((DateTime.Now.AddHours(-24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
             if (tipsCoin < 0) tipsCoin = 0;
 
             //检查是否可见
@@ -903,7 +910,7 @@ namespace ccxc_backend.Controllers.Game
             };
 
             //计算剩余提示币数量
-            var tipsCoin = Math.Floor((DateTime.Now.AddHours(24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
+            var tipsCoin = Math.Floor((DateTime.Now.AddHours(-24) - Ccxc.Core.Utils.UnixTimestamp.FromTimestamp(Config.Config.Options.StartTime)).TotalHours) - progress.penalty;
 
             if (tipsCoin < cost)
             {
