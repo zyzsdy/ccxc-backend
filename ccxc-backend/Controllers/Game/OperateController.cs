@@ -172,7 +172,7 @@ namespace ccxc_backend.Controllers.Game
 
             //取得最后一次错误答题记录
             var lastWrongTime = DateTime.MinValue;
-            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1 && it.status != 3 && it.status != 6)
+            var lastWrongAnswer = await answerLogDb.SimpleDb.AsQueryable().Where(it => it.gid == gid && it.status != 1 && it.status != 3 && it.status != 6 && it.status != 7)
                 .OrderBy(it => it.create_time, OrderByType.Desc).FirstAsync();
 
             if(lastWrongAnswer != null)
@@ -326,7 +326,7 @@ namespace ccxc_backend.Controllers.Game
 
                 if (progress.is_finish == 1)
                 {
-                    puzzleFactor *= 0.5; //完赛后继续答题题目分数减半
+                    puzzleFactor *= 0; //完赛后继续答题题目分数
                 }
 
 
@@ -341,6 +341,11 @@ namespace ccxc_backend.Controllers.Game
             //回写存档
 
             //计算是否完赛
+            if (puzzleItem.answer_type == 3)
+            {
+                extendFlag = 1;
+            }
+
             if (puzzleItem.answer_type == 3 && progress.is_finish != 1)
             {
                 progress.is_finish = 1;
