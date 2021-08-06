@@ -512,18 +512,19 @@ namespace ccxc_backend.Controllers.Game
                     return;
                 }
             }
-
-
-            //取得普通小题已经打开的区域（1~3）
-            var cache = DbFactory.GetCache();
-            var openedGroupKey = cache.GetDataKey("opened-groups");
-
-            var openedGroup = await cache.Get<int>(openedGroupKey);
-
-            if (puzzleItem.pgid > openedGroup)
+            else
             {
-                await response.Unauthorized("不能访问您未打开的区域");
-                return;
+                //取得普通小题已经打开的区域（1~3）
+                var cache = DbFactory.GetCache();
+                var openedGroupKey = cache.GetDataKey("opened-groups");
+
+                var openedGroup = await cache.Get<int>(openedGroupKey);
+
+                if (puzzleItem.pgid > openedGroup)
+                {
+                    await response.Unauthorized("不能访问您未打开的区域");
+                    return;
+                }
             }
 
 
