@@ -144,19 +144,6 @@ namespace ccxc_backend.Controllers.Groups
                 return;
             }
 
-            //判断当前在允许新建组队的时间范围内
-            var now = DateTime.Now;
-
-            if (Config.Config.Options.RegDeadline > 0)
-            {
-                var regDeadline = UnixTimestamp.FromTimestamp(Config.Config.Options.RegDeadline);
-                if (now > regDeadline)
-                {
-                    await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队伍信息。");
-                    return;
-                }
-            }
-
             //取得该用户GID
             var groupBindDb = DbFactory.Get<UserGroupBind>();
             var groupBindList = await groupBindDb.SelectAllFromCache();
@@ -203,14 +190,34 @@ namespace ccxc_backend.Controllers.Groups
 
 
             var groupItem = groupList.FirstOrDefault(it => it.gid == gid);
-            if(groupItem == null)
+            if (groupItem == null)
             {
                 await response.BadRequest("幽灵组队出现了！！！！！！！！！");
                 return;
             }
 
+            //判断当前在允许新建组队的时间范围内，否则队名不能修改
+            if (requestJson.groupname != groupItem.groupname)
+            {
+
+                var now = DateTime.Now;
+
+                if (Config.Config.Options.RegDeadline > 0)
+                {
+                    var regDeadline = UnixTimestamp.FromTimestamp(Config.Config.Options.RegDeadline);
+                    if (now > regDeadline)
+                    {
+                        await response.BadRequest($"报名截止时间 （{regDeadline:yyyy-MM-dd HH:mm:ss}） 已过，现在不能修改队名。");
+                        return;
+                    }
+                }
+
+                groupItem.groupname = requestJson.groupname;
+            }
+
+
+
             //编辑并保存
-            groupItem.groupname = requestJson.groupname;
             groupItem.profile = requestJson.profile;
             groupItem.update_time = DateTime.Now;
 
